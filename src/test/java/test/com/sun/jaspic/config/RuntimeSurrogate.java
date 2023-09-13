@@ -26,13 +26,13 @@ import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
+
+import org.glassfish.epicyro.config.factory.file.AuthConfigFileFactory;
+import org.glassfish.epicyro.config.module.configprovider.JAASServletAuthConfigProvider;
+
 import jakarta.security.auth.message.AuthException;
 import jakarta.security.auth.message.config.AuthConfigFactory;
 import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContext;
-
-import org.omnifaces.eleos.config.factory.file.AuthConfigFileFactory;
-import org.omnifaces.eleos.config.module.configprovider.JAASServletAuthConfigProvider;
-
 import jakarta.security.auth.message.config.AuthConfigProvider;
 import jakarta.security.auth.message.config.RegistrationListener;
 import jakarta.security.auth.message.config.ServerAuthConfig;

@@ -24,6 +24,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.ArrayList;
 import java.util.List;
 import java.security.Security;
+
+import org.glassfish.epicyro.config.factory.BaseAuthConfigFactory;
+import org.glassfish.epicyro.config.factory.file.AuthConfigFileFactory;
+import org.glassfish.epicyro.config.factory.file.AuthConfigProviderEntry;
+import org.glassfish.epicyro.config.factory.file.RegStoreFileParser;
 import org.junit.After;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,10 +52,6 @@ import jakarta.security.auth.message.config.ServerAuthContext;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.omnifaces.eleos.config.factory.BaseAuthConfigFactory;
-import org.omnifaces.eleos.config.factory.file.AuthConfigFileFactory;
-import org.omnifaces.eleos.config.factory.file.AuthConfigProviderEntry;
-import org.omnifaces.eleos.config.factory.file.RegStoreFileParser;
 
 import static org.junit.Assert.*;
 
