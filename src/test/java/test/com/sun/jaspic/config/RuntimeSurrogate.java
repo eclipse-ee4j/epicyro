@@ -30,8 +30,8 @@ import javax.security.auth.message.AuthException;
 import javax.security.auth.message.config.AuthConfigFactory;
 import javax.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
-import org.omnifaces.elios.config.factory.file.AuthConfigFileFactory;
-import org.omnifaces.elios.config.module.configprovider.JAASServletAuthConfigProvider;
+import org.omnifaces.eleos.config.factory.file.AuthConfigFileFactory;
+import org.omnifaces.eleos.config.module.configprovider.JAASServletAuthConfigProvider;
 
 import javax.security.auth.message.config.AuthConfigProvider;
 import javax.security.auth.message.config.RegistrationListener;
