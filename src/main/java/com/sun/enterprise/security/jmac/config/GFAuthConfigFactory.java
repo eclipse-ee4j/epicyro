@@ -14,16 +14,27 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-package com.sun.jaspic.config.factory;
+package com.sun.enterprise.security.jmac.config;
+
+import com.sun.enterprise.security.SecurityServicesUtil;
+import com.sun.enterprise.security.jmac.WebServicesDelegate;
+import com.sun.jaspic.config.factory.BaseAuthConfigFactory;
+import com.sun.jaspic.config.factory.RegStoreFileParser;
+import com.sun.jaspic.config.factory.EntryInfo;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
- *
- * @author ronmonzillo
+ * This class implements methods in the abstract class AuthConfigFactory.
+ * 
+ * @author Shing Wai Chan
  */
-public class AuthConfigFileFactory extends BaseAuthConfigFactory {
+public class GFAuthConfigFactory extends BaseAuthConfigFactory {
 
     // MUST "hide" regStore in derived class.
-    static volatile RegStoreFileParser regStore = null;
+    static RegStoreFileParser regStore = null;
 
     /**
      * to specialize the defaultEntries passed to the RegStoreFileParser constructor, create another subclass of
@@ -37,7 +48,7 @@ public class AuthConfigFileFactory extends BaseAuthConfigFactory {
      * EntryInfo(String className, Map<String, String> properties);
      *
      */
-    public AuthConfigFileFactory() {
+    public GFAuthConfigFactory() {
         rLock.lock();
         try {
             if (regStore != null) {
@@ -50,12 +61,19 @@ public class AuthConfigFileFactory extends BaseAuthConfigFactory {
         wLock.lock();
         try {
             if (regStore == null) {
-                regStore = new RegStoreFileParser(userDir, BaseAuthConfigFactory.CONF_FILE_NAME, null);
+                initializeRegStore(userDir);
                 _loadFactory();
             }
         } finally {
             wLock.unlock();
         }
+    }
+
+    /**
+     * @param userDir
+     */
+    private static void initializeRegStore(String userDir) {
+        regStore = new RegStoreFileParser(userDir, BaseAuthConfigFactory.CONF_FILE_NAME, getDefaultProviders());
     }
 
     @Override
@@ -67,4 +85,25 @@ public class AuthConfigFileFactory extends BaseAuthConfigFactory {
             rLock.unlock();
         }
     }
+
+    /*
+     * Contains the default providers used when none are configured in a factory configuration file.
+     */
+    static List<EntryInfo> getDefaultProviders() {
+        WebServicesDelegate delegate = null;
+        SecurityServicesUtil svcUtil = SecurityServicesUtil.getInstance();
+        if (svcUtil != null) {
+            delegate = svcUtil.getHabitat().getService(WebServicesDelegate.class);
+        }
+        if (delegate != null) {
+            List<EntryInfo> entries = new ArrayList<EntryInfo>(2);
+            entries.add(new EntryInfo(delegate.getDefaultWebServicesProvider(), null));
+            entries.add(new EntryInfo(GFServerConfigProvider.class.getName(), null));
+            return entries;
+        }
+        List<EntryInfo> entries = new ArrayList<EntryInfo>(1);
+        entries.add(new EntryInfo(GFServerConfigProvider.class.getName(), null));
+        return entries;
+    }
+
 }

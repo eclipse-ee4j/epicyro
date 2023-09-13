@@ -46,7 +46,7 @@ public abstract class JAASAuthConfigProvider extends AuthConfigProviderHelper {
         this.properties = properties;
         this.factory = factory;
 
-        configFileName = getProperty(CONFIG_FILE_NAME_KEY,null);
+        configFileName = getProperty(CONFIG_FILE_NAME_KEY, null);
 
         if (configFileName == null) {
             jaasConfig = new ExtendedConfigFile();
@@ -59,14 +59,15 @@ public abstract class JAASAuthConfigProvider extends AuthConfigProviderHelper {
                 throw iae;
             }
         }
-       selfRegister();
+        selfRegister();
     }
 
+    @Override
     public Map<String, ?> getProperties() {
         return properties;
     }
 
-
+    @Override
     public AuthConfigFactory getFactory() {
         return factory;
     }
@@ -85,24 +86,29 @@ public abstract class JAASAuthConfigProvider extends AuthConfigProviderHelper {
 
             final String description = "JAAS AuthConfig: " + appContext;
 
+            @Override
             public String getMessageLayer() {
                 return layer;
             }
 
+            @Override
             public String getAppContext() {
                 return appContext;
             }
 
+            @Override
             public String getDescription() {
                 return description;
             }
 
+            @Override
             public boolean isPersistent() {
                 return false;
             }
         };
     }
 
+    @Override
     public AuthConfigFactory.RegistrationContext[] getSelfRegistrationContexts() {
         final String[] appContexts = jaasConfig.getAppNames(getModuleTypes());
         RegistrationContext[] rvalue = new RegistrationContext[appContexts.length];
@@ -112,10 +118,9 @@ public abstract class JAASAuthConfigProvider extends AuthConfigProviderHelper {
         return rvalue;
     }
 
-    public AuthContextHelper getAuthContextHelper(String appContext, boolean returnNullContexts)
-            throws AuthException {
-        return new JAASAuthContextHelper(getLoggerName(), returnNullContexts,
-                jaasConfig, properties, appContext);
+    @Override
+    public AuthContextHelper getAuthContextHelper(String appContext, boolean returnNullContexts) throws AuthException {
+        return new JAASAuthContextHelper(getLoggerName(), returnNullContexts, jaasConfig, properties, appContext);
     }
 
     @Override

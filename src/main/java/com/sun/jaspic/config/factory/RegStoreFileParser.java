@@ -33,19 +33,16 @@ import java.util.logging.Logger;
 
 import javax.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
-
 /**
- * Used by GFServerConfigProvider to parse the configuration file. If
- * a file does not exist originally, the default providers are not used.
- * A file is only created if needed, which happens if providers are
- * registered or unregistered through the store() or delete() methods.
+ * Used by GFServerConfigProvider to parse the configuration file. If a file does not exist originally, the default
+ * providers are not used. A file is only created if needed, which happens if providers are registered or unregistered
+ * through the store() or delete() methods.
  *
  * @author Bobby Bissett
  */
 public final class RegStoreFileParser {
 
-    private static final Logger logger =
-            Logger.getLogger(JASPICLogManager.JASPIC_LOGGER, JASPICLogManager.RES_BUNDLE);
+    private static final Logger logger = Logger.getLogger(JASPICLogManager.JASPIC_LOGGER, JASPICLogManager.RES_BUNDLE);
 
     private static final String SEP = ":";
     private static final String CON_ENTRY = "con-entry";
@@ -54,19 +51,18 @@ public final class RegStoreFileParser {
     private static final String LAYER = "layer";
     private static final String APP_CTX = "app-ctx";
     private static final String DESCRIPTION = "description";
-    private static final String [] INDENT = { "", "  ", "    " };
+    private static final String[] INDENT = { "", "  ", "    " };
 
     private final File confFile;
     private List<EntryInfo> entries;
     private List<EntryInfo> defaultEntries;
 
     /*
-     * Loads the configuration file from the given filename.
-     * If a file is not found, then the default entries
-     * are used. Otherwise the file is parsed to load the entries.
+     * Loads the configuration file from the given filename. If a file is not found, then the default entries are used.
+     * Otherwise the file is parsed to load the entries.
      *
      */
-    public RegStoreFileParser(String pathParent, String pathChild,List<EntryInfo> defaultEntries) {
+    public RegStoreFileParser(String pathParent, String pathChild, List<EntryInfo> defaultEntries) {
         confFile = new File(pathParent, pathChild);
         this.defaultEntries = defaultEntries == null ? new ArrayList<EntryInfo>() : defaultEntries;
         try {
@@ -80,29 +76,25 @@ public final class RegStoreFileParser {
 
     private void logWarningUpdated(Exception exception) {
         if (logger.isLoggable(Level.WARNING)) {
-            logger.log(Level.WARNING,
-                "jmac.factory_could_not_persist", exception.toString());
+            logger.log(Level.WARNING, "jmac.factory_could_not_persist", exception.toString());
         }
     }
 
     private void logWarningDefault(Exception exception) {
         if (logger.isLoggable(Level.WARNING)) {
-            logger.log(Level.WARNING,
-                "jmac.factory_could_not_read", exception.toString());
+            logger.log(Level.WARNING, "jmac.factory_could_not_read", exception.toString());
         }
     }
 
     /*
-     * Returns the in-memory list of entries.
-     * MUST Hold exclusive lock on calling factory while processing entries
+     * Returns the in-memory list of entries. MUST Hold exclusive lock on calling factory while processing entries
      */
     List<EntryInfo> getPersistedEntries() {
         return entries;
     }
 
     /*
-     * Adds the provider to the entry list if it is not already
-     * present, creates the configuration file if necessary, and
+     * Adds the provider to the entry list if it is not already present, creates the configuration file if necessary, and
      * writes the entries to the file.
      */
     void store(String className, RegistrationContext ctx, Map properties) {
@@ -118,8 +110,7 @@ public final class RegStoreFileParser {
     }
 
     /*
-     * Removes the provider from the entry list if it is already
-     * present, creates the configuration file if necessary, and
+     * Removes the provider from the entry list if it is already present, creates the configuration file if necessary, and
      * writes the entries to the file.
      */
     void delete(RegistrationContext ctx) {
@@ -135,12 +126,10 @@ public final class RegStoreFileParser {
     }
 
     /*
-     * If this entry does not exist, this method stores it in
-     * the entries list and returns true to indicate that the
+     * If this entry does not exist, this method stores it in the entries list and returns true to indicate that the
      * configuration file should be written.
      */
-    private boolean checkAndAddToList(String className,
-        RegistrationContext ctx, Map props) {
+    private boolean checkAndAddToList(String className, RegistrationContext ctx, Map props) {
 
         // convention is to use null for empty properties
         if (props != null && props.isEmpty()) {
@@ -166,8 +155,7 @@ public final class RegStoreFileParser {
     }
 
     /*
-     * If this registration context does not exist, this method
-     * returns false. Otherwise it removes the entry and returns
+     * If this registration context does not exist, this method returns false. Otherwise it removes the entry and returns
      * true to indicate that the configuration file should be written.
      *
      * This only makes sense for registry entries.
@@ -183,8 +171,7 @@ public final class RegStoreFileParser {
                     continue;
                 }
 
-                Iterator<RegistrationContext> iter =
-                        info.getRegContexts().iterator();
+                Iterator<RegistrationContext> iter = info.getRegContexts().iterator();
                 while (iter.hasNext()) {
                     RegistrationContext ctx = iter.next();
                     if (ctx.equals(target)) {
@@ -203,9 +190,8 @@ public final class RegStoreFileParser {
     }
 
     /*
-     * Used to find a matching registration entry in the 'entries'
-     * list without including registration contexts. If there is not
-     * a matching entry, return null.
+     * Used to find a matching registration entry in the 'entries' list without including registration contexts. If there is
+     * not a matching entry, return null.
      */
     private EntryInfo getMatchingRegEntry(EntryInfo target) {
         for (EntryInfo info : entries) {
@@ -217,14 +203,11 @@ public final class RegStoreFileParser {
     }
 
     /*
-     * This method overwrites the existing file with the
-     * current entries.
+     * This method overwrites the existing file with the current entries.
      */
     private void writeEntries() throws IOException {
-        if (confFile.exists() && !confFile.canWrite()
-                && logger.isLoggable(Level.WARNING)) {
-            logger.log(Level.WARNING, "jmac.factory_cannot_write_file",
-                    confFile.getPath());
+        if (confFile.exists() && !confFile.canWrite() && logger.isLoggable(Level.WARNING)) {
+            logger.log(Level.WARNING, "jmac.factory_cannot_write_file", confFile.getPath());
         }
         clearExistingFile();
         PrintWriter out = new PrintWriter(confFile);
@@ -240,25 +223,16 @@ public final class RegStoreFileParser {
     }
 
     /*
-     * Writes constructor entry output of the form:
-     * <pre>
-     * con-entry {
-     *   className
-     *   key:value
-     *   key:value
-     * }
-     * </pre>
-     * The first appearance of a colon ":" separates
-     * the key and value of the property (so a value may
-     * contain a colon as part of the string). For instance:
-     * "mydir:c:foo" would have key "mydir" and value "c:foo".
+     * Writes constructor entry output of the form: <pre> con-entry { className key:value key:value } </pre> The first
+     * appearance of a colon ":" separates the key and value of the property (so a value may contain a colon as part of the
+     * string). For instance: "mydir:c:foo" would have key "mydir" and value "c:foo".
      */
     private void writeConEntry(EntryInfo info, PrintWriter out, int i) {
         out.println(INDENT[i++] + CON_ENTRY + " {");
         out.println(INDENT[i] + info.getClassName());
         Map<String, String> props = info.getProperties();
         if (props != null) {
-            for (Map.Entry<String,String> val : props.entrySet()) {
+            for (Map.Entry<String, String> val : props.entrySet()) {
                 out.println(INDENT[i] + val.getKey() + SEP + val.getValue());
             }
         }
@@ -266,17 +240,8 @@ public final class RegStoreFileParser {
     }
 
     /*
-     * Write registration entry output of the form:
-     * <pre>
-     * reg-entry {
-     *   con-entry { see writeConEntry() for detail }
-     *   reg-ctx {
-     *     layer:HttpServlet
-     *     app-ctx:security-jmac-https
-     *     description:My provider
-     *   }
-     * }
-     * </pre>
+     * Write registration entry output of the form: <pre> reg-entry { con-entry { see writeConEntry() for detail } reg-ctx {
+     * layer:HttpServlet app-ctx:security-jmac-https description:My provider } } </pre>
      */
     private void writeRegEntry(EntryInfo info, PrintWriter out, int i) {
         out.println(INDENT[i++] + REG_ENTRY + " {");
@@ -292,8 +257,7 @@ public final class RegStoreFileParser {
                 out.println(INDENT[i] + APP_CTX + SEP + ctx.getAppContext());
             }
             if (ctx.getDescription() != null) {
-                out.println(INDENT[i] + DESCRIPTION +
-                    SEP + ctx.getDescription());
+                out.println(INDENT[i] + DESCRIPTION + SEP + ctx.getDescription());
             }
             out.println(INDENT[--i] + "}");
         }
@@ -303,13 +267,12 @@ public final class RegStoreFileParser {
     private void clearExistingFile() throws IOException {
         boolean newCreation = !confFile.exists();
         if (!newCreation) {
-            if(!confFile.delete()) {
+            if (!confFile.delete()) {
                 throw new IOException();
             }
-        } 
+        }
         if (newCreation) {
-            logger.log(Level.INFO, "jmac.factory_creating_conf_file",
-                    confFile.getPath());
+            logger.log(Level.INFO, "jmac.factory_creating_conf_file", confFile.getPath());
         }
         if (!confFile.createNewFile()) {
             throw new IOException();
@@ -317,9 +280,8 @@ public final class RegStoreFileParser {
     }
 
     /*
-     * Called from the constructor. This is the only time
-     * the file is read, though it is written when new
-     * entries are stored or deleted.
+     * Called from the constructor. This is the only time the file is read, though it is written when new entries are stored
+     * or deleted.
      */
     private void loadEntries() throws IOException {
         synchronized (confFile) {
@@ -339,10 +301,8 @@ public final class RegStoreFileParser {
                 }
             } else {
                 if (logger.isLoggable(Level.FINER)) {
-                    logger.log(Level.FINER, "jmac.factory_file_not_found",
-                            confFile.getParent() + File.pathSeparator
-                            + confFile.getPath());
-                    
+                    logger.log(Level.FINER, "jmac.factory_file_not_found", confFile.getParent() + File.pathSeparator + confFile.getPath());
+
                 }
                 for (EntryInfo e : defaultEntries) {
                     entries.add(new EntryInfo(e));
@@ -354,7 +314,7 @@ public final class RegStoreFileParser {
     private EntryInfo readConEntry(BufferedReader reader) throws IOException {
         // entry must contain class name as next line
         String className = reader.readLine();
-        if(className != null) {
+        if (className != null) {
             className = className.trim();
         }
         Map<String, String> properties = readProperties(reader);
@@ -362,16 +322,13 @@ public final class RegStoreFileParser {
     }
 
     /*
-     * Properties must be of the form "key:value." While the key
-     * String cannot contain a ":" character, the value can. The
-     * line will be broken into key and value based on the first
-     * appearance of the ":" character.
+     * Properties must be of the form "key:value." While the key String cannot contain a ":" character, the value can. The
+     * line will be broken into key and value based on the first appearance of the ":" character.
      */
-    private Map<String, String> readProperties(BufferedReader reader)
-        throws IOException {
+    private Map<String, String> readProperties(BufferedReader reader) throws IOException {
 
         String line = reader.readLine();
-        if(line != null) {
+        if (line != null) {
             line = line.trim();
         }
 
@@ -380,8 +337,7 @@ public final class RegStoreFileParser {
         }
         Map<String, String> properties = new HashMap<String, String>();
         while (!"}".equals(line)) {
-            properties.put(line.substring(0, line.indexOf(SEP)),
-                line.substring(line.indexOf(SEP) + 1, line.length()));
+            properties.put(line.substring(0, line.indexOf(SEP)), line.substring(line.indexOf(SEP) + 1, line.length()));
             line = reader.readLine();
             if (line != null) {
                 line = line.trim();
@@ -393,10 +349,9 @@ public final class RegStoreFileParser {
     private EntryInfo readRegEntry(BufferedReader reader) throws IOException {
         String className = null;
         Map<String, String> properties = null;
-        List<RegistrationContext> ctxs =
-            new ArrayList<RegistrationContext>();
+        List<RegistrationContext> ctxs = new ArrayList<RegistrationContext>();
         String line = reader.readLine();
-        if(line != null) {
+        if (line != null) {
             line = line.trim();
         }
         while (!"}".equals(line)) {
@@ -408,7 +363,7 @@ public final class RegStoreFileParser {
                 ctxs.add(readRegContext(reader));
             }
             line = reader.readLine();
-            if(line != null) {
+            if (line != null) {
                 line = line.trim();
             }
 
@@ -416,19 +371,17 @@ public final class RegStoreFileParser {
         return new EntryInfo(className, properties, ctxs);
     }
 
-    private RegistrationContext readRegContext(BufferedReader reader)
-        throws IOException {
+    private RegistrationContext readRegContext(BufferedReader reader) throws IOException {
 
         String layer = null;
         String appCtx = null;
         String description = null;
         String line = reader.readLine();
-        if(line != null) {
+        if (line != null) {
             line = line.trim();
         }
         while (!"}".equals(line)) {
-            String value = line.substring(line.indexOf(SEP) + 1,
-                line.length());
+            String value = line.substring(line.indexOf(SEP) + 1, line.length());
             if (line.startsWith(LAYER)) {
                 layer = value;
             } else if (line.startsWith(APP_CTX)) {
@@ -436,8 +389,8 @@ public final class RegStoreFileParser {
             } else if (line.startsWith(DESCRIPTION)) {
                 description = value;
             }
-           line = reader.readLine();
-            if(line != null) {
+            line = reader.readLine();
+            if (line != null) {
                 line = line.trim();
             }
         }

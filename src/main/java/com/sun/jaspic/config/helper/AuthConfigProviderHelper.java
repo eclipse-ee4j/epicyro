@@ -66,21 +66,14 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
     }
 
     protected Class[] getModuleTypes() {
-        Class[] rvalue = new Class[]{
-            javax.security.auth.message.module.ServerAuthModule.class,
-            javax.security.auth.message.module.ClientAuthModule.class
-        };
+        Class[] rvalue = new Class[] { javax.security.auth.message.module.ServerAuthModule.class, javax.security.auth.message.module.ClientAuthModule.class };
         Map<String, ?> properties = getProperties();
         if (properties.containsKey(AUTH_MODULE_KEY)) {
             String keyValue = (String) properties.get(AUTH_MODULE_KEY);
             if (SERVER_AUTH_MODULE.equals(keyValue)) {
-                rvalue = new Class[]{
-                            javax.security.auth.message.module.ServerAuthModule.class
-                        };
+                rvalue = new Class[] { javax.security.auth.message.module.ServerAuthModule.class };
             } else if (CLIENT_AUTH_MODULE.equals(keyValue)) {
-                rvalue = new Class[]{
-                            javax.security.auth.message.module.ClientAuthModule.class
-                        };
+                rvalue = new Class[] { javax.security.auth.message.module.ClientAuthModule.class };
             }
         }
         return rvalue;
@@ -91,9 +84,7 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
             selfRegistered.clear();
             RegistrationContext[] contexts = getSelfRegistrationContexts();
             for (RegistrationContext r : contexts) {
-                String id = getFactory().registerConfigProvider(this,
-                        r.getMessageLayer(), r.getAppContext(),
-                        r.getDescription());
+                String id = getFactory().registerConfigProvider(this, r.getMessageLayer(), r.getAppContext(), r.getDescription());
                 selfRegistered.add(id);
             }
         }
@@ -135,9 +126,7 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
                 // add new self-segistrations
                 for (RegistrationContext r : contexts) {
                     if (r != null) {
-                        String id = getFactory().registerConfigProvider(this,
-                                r.getMessageLayer(), r.getAppContext(),
-                                r.getDescription());
+                        String id = getFactory().registerConfigProvider(this, r.getMessageLayer(), r.getAppContext(), r.getDescription());
                         selfRegistered.add(id);
                     }
                 }
@@ -148,8 +137,7 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
         }
     }
 
-    protected CallbackHandler getClientCallbackHandler(CallbackHandler cbh)
-            throws AuthException {
+    protected CallbackHandler getClientCallbackHandler(CallbackHandler cbh) throws AuthException {
         if (cbh == null) {
             AuthException ae = new AuthException("AuthConfigProvider does not support null Client Callbackhandler");
             ae.initCause(new UnsupportedOperationException());
@@ -158,8 +146,7 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
         return cbh;
     }
 
-    protected CallbackHandler getServerCallbackHandler(CallbackHandler cbh) throws
-            AuthException {
+    protected CallbackHandler getServerCallbackHandler(CallbackHandler cbh) throws AuthException {
         if (cbh == null) {
             AuthException ae = new AuthException("AuthConfigProvider does not support null Server Callbackhandler");
             ae.initCause(new UnsupportedOperationException());
@@ -168,22 +155,16 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
         return cbh;
     }
 
-    public ClientAuthConfig getClientAuthConfig(String layer, String appContext,
-            CallbackHandler cbh) throws AuthException {
-        return new ClientAuthConfigHelper(getLoggerName(), epochCarrier,
-                getAuthContextHelper(appContext, true),
-                getMessagePolicyDelegate(appContext),
-                layer, appContext,
-                getClientCallbackHandler(cbh));
+    @Override
+    public ClientAuthConfig getClientAuthConfig(String layer, String appContext, CallbackHandler cbh) throws AuthException {
+        return new ClientAuthConfigHelper(getLoggerName(), epochCarrier, getAuthContextHelper(appContext, true), getMessagePolicyDelegate(appContext), layer,
+                appContext, getClientCallbackHandler(cbh));
     }
 
-    public ServerAuthConfig getServerAuthConfig(String layer, String appContext,
-            CallbackHandler cbh) throws AuthException {
-        return new ServerAuthConfigHelper(getLoggerName(), epochCarrier,
-                getAuthContextHelper(appContext, true),
-                getMessagePolicyDelegate(appContext),
-                layer, appContext,
-                getServerCallbackHandler(cbh));
+    @Override
+    public ServerAuthConfig getServerAuthConfig(String layer, String appContext, CallbackHandler cbh) throws AuthException {
+        return new ServerAuthConfigHelper(getLoggerName(), epochCarrier, getAuthContextHelper(appContext, true), getMessagePolicyDelegate(appContext), layer,
+                appContext, getServerCallbackHandler(cbh));
     }
 
     public boolean contextsAreEqual(RegistrationContext a, RegistrationContext b) {
@@ -202,9 +183,8 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
     }
 
     /**
-     * to be called by refresh on provider subclass, and after subclass impl.
-     * has reloaded its underlying configuration system.
-     * Note: Spec is silent as to whether self-registrations should be reprocessed.
+     * to be called by refresh on provider subclass, and after subclass impl. has reloaded its underlying configuration
+     * system. Note: Spec is silent as to whether self-registrations should be reprocessed.
      */
     public void oldRefresh() {
         if (getFactory() != null) {
@@ -222,6 +202,7 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
         selfRegister();
     }
 
+    @Override
     public void refresh() {
         epochCarrier.increment();
         selfRegister();
@@ -237,8 +218,7 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
 
     public abstract RegistrationContext[] getSelfRegistrationContexts();
 
-    public abstract AuthContextHelper getAuthContextHelper(String appContext,
-            boolean returnNullContexts) throws AuthException;
+    public abstract AuthContextHelper getAuthContextHelper(String appContext, boolean returnNullContexts) throws AuthException;
 
     public abstract MessagePolicyDelegate getMessagePolicyDelegate(String appContext) throws AuthException;
 }

@@ -29,8 +29,7 @@ final class RegistrationContextImpl implements RegistrationContext {
     private final String description;
     private final boolean isPersistent;
 
-    RegistrationContextImpl(String messageLayer, String appContext,
-        String description, boolean persistent) {
+    RegistrationContextImpl(String messageLayer, String appContext, String description, boolean persistent) {
 
         this.messageLayer = messageLayer;
         this.appContext = appContext;
@@ -46,18 +45,22 @@ final class RegistrationContextImpl implements RegistrationContext {
         this.isPersistent = ctx.isPersistent();
     }
 
+    @Override
     public String getMessageLayer() {
         return messageLayer;
     }
 
+    @Override
     public String getAppContext() {
         return appContext;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
 
+    @Override
     public boolean isPersistent() {
         return isPersistent;
     }
@@ -68,10 +71,8 @@ final class RegistrationContextImpl implements RegistrationContext {
             return false;
         }
         RegistrationContext target = (RegistrationContext) o;
-        return ( EntryInfo.matchStrings(
-            messageLayer, target.getMessageLayer()) &&
-            EntryInfo.matchStrings(appContext, target.getAppContext()) &&
-            isPersistent() == target.isPersistent() );
+        return (EntryInfo.matchStrings(messageLayer, target.getMessageLayer()) && EntryInfo.matchStrings(appContext, target.getAppContext())
+                && isPersistent() == target.isPersistent());
     }
 
     @Override

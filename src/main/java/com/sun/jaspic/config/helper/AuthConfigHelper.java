@@ -45,8 +45,7 @@ public abstract class AuthConfigHelper {
     private Lock instanceReadLock = instanceReadWriteLock.readLock();
     private Lock instanceWriteLock = instanceReadWriteLock.writeLock();
 
-    public AuthConfigHelper(String loggerName, EpochCarrier providerEpoch,
-            MessagePolicyDelegate mpDelegate, String layer, String appContext,
+    public AuthConfigHelper(String loggerName, EpochCarrier providerEpoch, MessagePolicyDelegate mpDelegate, String layer, String appContext,
             CallbackHandler cbh) throws AuthException {
 
         this.loggerName = loggerName;
@@ -83,13 +82,12 @@ public abstract class AuthConfigHelper {
 
     private Integer getHashCode(Map properties) {
         if (properties == null) {
-            return  Integer.valueOf("0");
+            return Integer.valueOf("0");
         }
         return Integer.valueOf(properties.hashCode());
     }
 
-    private <M> M getContextFromMap(HashMap<String, HashMap<Integer, M>> contextMap,
-            String authContextID, Map properties) {
+    private <M> M getContextFromMap(HashMap<String, HashMap<Integer, M>> contextMap, String authContextID, Map properties) {
         M rvalue = null;
         HashMap<Integer, M> internalMap = contextMap.get(authContextID);
         if (internalMap != null) {
@@ -103,9 +101,8 @@ public abstract class AuthConfigHelper {
         return rvalue;
     }
 
-    protected final <M> M getContext(
-            HashMap<String, HashMap<Integer, M>> contextMap, String authContextID,
-            Subject subject, Map properties) throws AuthException {
+    protected final <M> M getContext(HashMap<String, HashMap<Integer, M>> contextMap, String authContextID, Subject subject, Map properties)
+            throws AuthException {
 
         M rvalue = null;
 
@@ -149,12 +146,12 @@ public abstract class AuthConfigHelper {
     protected void logIfLevel(Level level, Throwable t, String... msgParts) {
         Logger logger = Logger.getLogger(loggerName);
         if (logger.isLoggable(level)) {
-          StringBuffer msgB = new StringBuffer("");
+            StringBuffer msgB = new StringBuffer("");
             for (String m : msgParts) {
                 msgB.append(m);
             }
             String msg = msgB.toString();
-            if ( !msg.isEmpty() && t != null) {
+            if (!msg.isEmpty() && t != null) {
                 logger.log(level, msg, t);
             } else if (!msg.isEmpty()) {
                 logger.log(level, msg);
@@ -178,12 +175,11 @@ public abstract class AuthConfigHelper {
     }
 
     /**
-     *  Only called from initialize (while lock is held).
+     * Only called from initialize (while lock is held).
      */
     protected abstract void initializeContextMap();
 
-    protected abstract <M> M createAuthContext(final String authContextID,
-            final Map properties) throws AuthException;
+    protected abstract <M> M createAuthContext(final String authContextID, final Map properties) throws AuthException;
 
     public String getAppContext() {
         return appContext;

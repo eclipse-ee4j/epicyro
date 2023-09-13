@@ -14,25 +14,13 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-package com.sun.jaspic.config.delegate;
-
-import java.util.Map;
-import javax.security.auth.message.MessageInfo;
-import javax.security.auth.message.MessagePolicy;
+package com.sun.enterprise.security.jmac.config;
 
 /**
+ * This is an interface for our callback handler configuration.
  *
- * @author ronmonzillo
+ * @author Shing Wai Chan
  */
-public interface MessagePolicyDelegate {
-
-    public MessagePolicy getRequestPolicy(String authContextID, Map properties);
-
-    public MessagePolicy getResponsePolicy(String authContextID, Map properties);
-
-    public Class[] getMessageTypes();
-
-    public String getAuthContextID(MessageInfo messageInfo);
-
-    public boolean isProtected();
+public interface CallbackHandlerConfig {
+    public void setHandlerContext(HandlerContext handlerContext);
 }

@@ -38,35 +38,35 @@ public class JAASServletAuthConfigProvider extends JAASAuthConfigProvider {
     private static final String MANDATORY_KEY = "javax.security.auth.message.MessagePolicy.isMandatory";
     private static final String MANDATORY_AUTH_CONTEXT_ID = "mandatory";
     private static final String OPTIONAL_AUTH_CONTEXT_ID = "optional";
-    private static final Class[] moduleTypes = new Class[] {ServerAuthModule.class};
-    private static final Class[] messageTypes = new Class[] {HttpServletRequest.class, HttpServletResponse.class};
-    final static MessagePolicy mandatoryPolicy =
-            new MessagePolicy(new MessagePolicy.TargetPolicy[]{
-                new MessagePolicy.TargetPolicy((MessagePolicy.Target[]) null,
-                new MessagePolicy.ProtectionPolicy() {
+    private static final Class[] moduleTypes = new Class[] { ServerAuthModule.class };
+    private static final Class[] messageTypes = new Class[] { HttpServletRequest.class, HttpServletResponse.class };
+    final static MessagePolicy mandatoryPolicy = new MessagePolicy(
+            new MessagePolicy.TargetPolicy[] { new MessagePolicy.TargetPolicy((MessagePolicy.Target[]) null, new MessagePolicy.ProtectionPolicy() {
 
-                    public String getID() {
-                        return MessagePolicy.ProtectionPolicy.AUTHENTICATE_SENDER;
-                    }
-                })}, true);
-    final static MessagePolicy optionalPolicy =
-            new MessagePolicy(new MessagePolicy.TargetPolicy[]{
-                new MessagePolicy.TargetPolicy((MessagePolicy.Target[]) null,
-                new MessagePolicy.ProtectionPolicy() {
+                @Override
+                public String getID() {
+                    return MessagePolicy.ProtectionPolicy.AUTHENTICATE_SENDER;
+                }
+            }) }, true);
+    final static MessagePolicy optionalPolicy = new MessagePolicy(
+            new MessagePolicy.TargetPolicy[] { new MessagePolicy.TargetPolicy((MessagePolicy.Target[]) null, new MessagePolicy.ProtectionPolicy() {
 
-                    public String getID() {
-                        return MessagePolicy.ProtectionPolicy.AUTHENTICATE_SENDER;
-                    }
-                })}, false);
+                @Override
+                public String getID() {
+                    return MessagePolicy.ProtectionPolicy.AUTHENTICATE_SENDER;
+                }
+            }) }, false);
 
     public JAASServletAuthConfigProvider(Map properties, AuthConfigFactory factory) {
         super(properties, factory);
     }
 
+    @Override
     public MessagePolicyDelegate getMessagePolicyDelegate(String appContext) throws AuthException {
 
         return new MessagePolicyDelegate() {
 
+            @Override
             public MessagePolicy getRequestPolicy(String authContextID, Map properties) {
                 MessagePolicy rvalue;
                 if (MANDATORY_AUTH_CONTEXT_ID.equals(authContextID)) {
@@ -77,14 +77,17 @@ public class JAASServletAuthConfigProvider extends JAASAuthConfigProvider {
                 return rvalue;
             }
 
+            @Override
             public MessagePolicy getResponsePolicy(String authContextID, Map properties) {
                 return null;
             }
 
+            @Override
             public Class[] getMessageTypes() {
                 return messageTypes;
             }
 
+            @Override
             public String getAuthContextID(MessageInfo messageInfo) {
                 String rvalue;
                 if (messageInfo.getMap().containsKey(MANDATORY_KEY)) {
@@ -95,6 +98,7 @@ public class JAASServletAuthConfigProvider extends JAASAuthConfigProvider {
                 return rvalue;
             }
 
+            @Override
             public boolean isProtected() {
                 return true;
             }
@@ -113,9 +117,8 @@ public class JAASServletAuthConfigProvider extends JAASAuthConfigProvider {
     }
 
     @Override
-    public AuthContextHelper getAuthContextHelper(String appContext, boolean returnNullContexts)
-            throws AuthException {
+    public AuthContextHelper getAuthContextHelper(String appContext, boolean returnNullContexts) throws AuthException {
         // overrides returnNullContexts to false (as required by Servlet Profile)
-        return super.getAuthContextHelper(appContext,false);
+        return super.getAuthContextHelper(appContext, false);
     }
 }

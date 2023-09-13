@@ -14,25 +14,20 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-package com.sun.jaspic.config.delegate;
-
-import java.util.Map;
-import javax.security.auth.message.MessageInfo;
-import javax.security.auth.message.MessagePolicy;
+package com.sun.enterprise.security.jmac.config;
 
 /**
- *
- * @author ronmonzillo
+ * This is used to do HttpServlet security for app server
  */
-public interface MessagePolicyDelegate {
+public class HttpServletConstants {
+    public static final String AUTH_TYPE = "javax.servlet.http.authType";
+    public static final String WEB_BUNDLE = "WEB_BUNDLE";
+    public static final String POLICY_CONTEXT = "javax.security.jacc.PolicyContext";
+    public static final String IS_MANDATORY = "javax.security.auth.message.MessagePolicy.isMandatory";
+    public static final String REGISTER_SESSION = "javax.servlet.http.registerSession";
+    @Deprecated
+    public static final String REGISTER_WITH_AUTHENTICATOR = "com.sun.web.RealmAdapter.register";
 
-    public MessagePolicy getRequestPolicy(String authContextID, Map properties);
-
-    public MessagePolicy getResponsePolicy(String authContextID, Map properties);
-
-    public Class[] getMessageTypes();
-
-    public String getAuthContextID(MessageInfo messageInfo);
-
-    public boolean isProtected();
+    private HttpServletConstants() {
+    }
 }

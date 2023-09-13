@@ -41,17 +41,15 @@ public class JAASAuthContextHelper extends AuthContextHelper {
     private static final String DEFAULT_ENTRY_NAME = "other";
     private static final Class[] PARAMS = {};
     private static final Object[] ARGS = {};
-    //may be more than one delegate for a given jaas config file
-    private ReentrantReadWriteLock instanceReadWriteLock =
-            new ReentrantReadWriteLock();
+    // may be more than one delegate for a given jaas config file
+    private ReentrantReadWriteLock instanceReadWriteLock = new ReentrantReadWriteLock();
     private Lock instanceWriteLock = instanceReadWriteLock.writeLock();
     ExtendedConfigFile jaasConfig;
     private final String appContext;
     private AppConfigurationEntry[] entry;
     private Constructor[] ctor;
 
-    public JAASAuthContextHelper(String loggerName, boolean returnNullContexts,
-            ExtendedConfigFile jaasConfig, Map properties, String appContext)
+    public JAASAuthContextHelper(String loggerName, boolean returnNullContexts, ExtendedConfigFile jaasConfig, Map properties, String appContext)
             throws AuthException {
         super(loggerName, returnNullContexts);
         this.jaasConfig = jaasConfig;
@@ -83,13 +81,9 @@ public class JAASAuthContextHelper extends AuthContextHelper {
         }
         if (!found) {
             if (!foundDefault) {
-                logIfLevel(Level.INFO, null,
-                        "JAASAuthConfig no entries matched appContext (",
-                        appContext, ") or (", DEFAULT_ENTRY_NAME, ")");
+                logIfLevel(Level.INFO, null, "JAASAuthConfig no entries matched appContext (", appContext, ") or (", DEFAULT_ENTRY_NAME, ")");
             } else {
-                logIfLevel(Level.INFO, null,
-                        "JAASAuthConfig appContext (", appContext, ") matched (",
-                        DEFAULT_ENTRY_NAME, ")");
+                logIfLevel(Level.INFO, null, "JAASAuthConfig appContext (", appContext, ") matched (", DEFAULT_ENTRY_NAME, ")");
             }
         }
     }
@@ -98,36 +92,29 @@ public class JAASAuthContextHelper extends AuthContextHelper {
         if (ctor == null) {
             try {
                 final Class moduleType = template.getClass().getComponentType();
-                ctor = (Constructor[]) AccessController.doPrivileged(
-                        new java.security.PrivilegedExceptionAction() {
+                ctor = (Constructor[]) AccessController.doPrivileged(new java.security.PrivilegedExceptionAction() {
 
-                            public Object run() throws
-                                    java.lang.ClassNotFoundException,
-                                    java.lang.NoSuchMethodException,
-                                    java.lang.InstantiationException,
-                                    java.lang.IllegalAccessException,
-                                    java.lang.reflect.InvocationTargetException {
-                                Constructor[] ctor = new Constructor[entry.length];
-                                ClassLoader loader =
-                                        Thread.currentThread().getContextClassLoader();
-                                for (int i = 0; i < entry.length; i++) {
-                                    ctor[i] = null;
-                                    String clazz = entry[i].getLoginModuleName();
-                                    try {
-                                        Class c = Class.forName(clazz, true, loader);
-                                        if (moduleType.isAssignableFrom(c)) {
-                                            ctor[i] = c.getConstructor(PARAMS);
-                                        }
-
-                                    } catch (Throwable t) {
-                                        logIfLevel(Level.WARNING, null,
-                                                "skipping unloadable class: ",
-                                                clazz, " of appCOntext: ", appContext);
-                                    }
+                    @Override
+                    public Object run() throws java.lang.ClassNotFoundException, java.lang.NoSuchMethodException, java.lang.InstantiationException,
+                            java.lang.IllegalAccessException, java.lang.reflect.InvocationTargetException {
+                        Constructor[] ctor = new Constructor[entry.length];
+                        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+                        for (int i = 0; i < entry.length; i++) {
+                            ctor[i] = null;
+                            String clazz = entry[i].getLoginModuleName();
+                            try {
+                                Class c = Class.forName(clazz, true, loader);
+                                if (moduleType.isAssignableFrom(c)) {
+                                    ctor[i] = c.getConstructor(PARAMS);
                                 }
-                                return ctor;
+
+                            } catch (Throwable t) {
+                                logIfLevel(Level.WARNING, null, "skipping unloadable class: ", clazz, " of appCOntext: ", appContext);
                             }
-                        });
+                        }
+                        return ctor;
+                    }
+                });
             } catch (java.security.PrivilegedActionException pae) {
                 AuthException ae = new AuthException();
                 ae.initCause(pae.getCause());
@@ -136,6 +123,7 @@ public class JAASAuthContextHelper extends AuthContextHelper {
         }
     }
 
+    @Override
     protected final void refresh() {
         jaasConfig.refresh();
         initialize();
@@ -143,12 +131,14 @@ public class JAASAuthContextHelper extends AuthContextHelper {
 
     /**
      * this implementation does not depend on authContextID
+     * 
      * @param <M>
      * @param template
      * @param authContextID (ignored by this context system)
      * @return
      * @throws AuthException
      */
+    @Override
     public <M> boolean hasModules(M[] template, String authContextID) throws AuthException {
         loadConstructors(template, authContextID);
         for (Constructor c : ctor) {
@@ -161,12 +151,14 @@ public class JAASAuthContextHelper extends AuthContextHelper {
 
     /**
      * this implementation does not depend on authContextID
+     * 
      * @param <M>
      * @param template
      * @param authContextID (ignored by this context system)
      * @return
      * @throws AuthException
      */
+    @Override
     public <M> M[] getModules(M[] template, String authContextID) throws AuthException {
         loadConstructors(template, authContextID);
         ArrayList<M> list = new ArrayList<M>();
@@ -176,17 +168,13 @@ public class JAASAuthContextHelper extends AuthContextHelper {
             } else {
                 final int j = i;
                 try {
-                    list.add(j, AccessController.doPrivileged(
-                            new java.security.PrivilegedExceptionAction<M>() {
+                    list.add(j, AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<M>() {
 
-                                public M run()
-                                        throws InstantiationException,
-                                        IllegalAccessException,
-                                        IllegalArgumentException,
-                                        InvocationTargetException {
-                                    return (M) ctor[j].newInstance(ARGS);
-                                }
-                            }));
+                        @Override
+                        public M run() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+                            return (M) ctor[j].newInstance(ARGS);
+                        }
+                    }));
                 } catch (PrivilegedActionException pae) {
                     AuthException ae = new AuthException();
                     ae.initCause(pae.getCause());
@@ -197,11 +185,12 @@ public class JAASAuthContextHelper extends AuthContextHelper {
         return list.toArray(template);
     }
 
+    @Override
     public Map<String, ?> getInitProperties(int i, Map<String, ?> properties) {
         Map<String, Object> rvalue = new HashMap<String, Object>();
         if (entry[i] != null) {
             if (properties != null && !properties.isEmpty()) {
-                rvalue.putAll((Map<String, Object>) properties);
+                rvalue.putAll(properties);
             }
             Map<String, Object> options = (Map<String, Object>) entry[i].getOptions();
             if (options != null && !options.isEmpty()) {
@@ -211,6 +200,7 @@ public class JAASAuthContextHelper extends AuthContextHelper {
         return rvalue;
     }
 
+    @Override
     public boolean exitContext(AuthStatus[] successValue, int i, AuthStatus moduleStatus) {
         if (entry[i] != null && ctor[i] != null) {
             LoginModuleControlFlag flag = entry[i].getControlFlag();
@@ -233,20 +223,16 @@ public class JAASAuthContextHelper extends AuthContextHelper {
         return false;
     }
 
-    public AuthStatus getReturnStatus(AuthStatus[] successValue,
-            AuthStatus defaultFailStatus,
-            AuthStatus[] status,
-            int position) {
+    @Override
+    public AuthStatus getReturnStatus(AuthStatus[] successValue, AuthStatus defaultFailStatus, AuthStatus[] status, int position) {
         AuthStatus result = null;
         for (int i = 0; i <= position; i++) {
             if (entry[i] != null && ctor[i] != null) {
                 LoginModuleControlFlag flag = entry[i].getControlFlag();
                 if (isLoggable(Level.FINE)) {
-                    logIfLevel(Level.FINE, null, "getReturnStatus - flag: ",
-                            flag.toString());
+                    logIfLevel(Level.FINE, null, "getReturnStatus - flag: ", flag.toString());
                 }
-                if (flag == LoginModuleControlFlag.REQUIRED
-                        || flag == LoginModuleControlFlag.REQUISITE) {
+                if (flag == LoginModuleControlFlag.REQUIRED || flag == LoginModuleControlFlag.REQUISITE) {
                     boolean isSuccessValue = false;
                     for (AuthStatus s : successValue) {
                         if (status[i] == s) {
@@ -260,15 +246,13 @@ public class JAASAuthContextHelper extends AuthContextHelper {
                         continue;
                     }
                     if (isLoggable(Level.FINE)) {
-                        logIfLevel(Level.FINE, null, "ReturnStatus - REQUIRED or REQUISITE failure: ",
-                                status[i].toString());
+                        logIfLevel(Level.FINE, null, "ReturnStatus - REQUIRED or REQUISITE failure: ", status[i].toString());
                     }
                     return status[i];
                 } else if (flag == LoginModuleControlFlag.SUFFICIENT) {
                     if (exitContext(successValue, i, status[i])) {
                         if (isLoggable(Level.FINE)) {
-                            logIfLevel(Level.FINE, null, "ReturnStatus - Sufficient success: ",
-                                    status[i].toString());
+                            logIfLevel(Level.FINE, null, "ReturnStatus - Sufficient success: ", status[i].toString());
                         }
                         return status[i];
                     }
@@ -291,8 +275,7 @@ public class JAASAuthContextHelper extends AuthContextHelper {
             return result;
         }
         if (isLoggable(Level.FINE)) {
-            logIfLevel(Level.FINE, null, "ReturnStatus - Default faiure status: ",
-                    defaultFailStatus.toString());
+            logIfLevel(Level.FINE, null, "ReturnStatus - Default faiure status: ", defaultFailStatus.toString());
         }
         return defaultFailStatus;
     }
