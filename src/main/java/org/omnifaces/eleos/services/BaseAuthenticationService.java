@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2022, 2022 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -65,11 +66,11 @@ public class BaseAuthenticationService {
 
     protected String messageLayer;
     protected String appContextId;
-    protected Map<String, ?> map;
+    protected Map<String, Object> map;
     protected CallbackHandler callbackHandler;
     protected AuthConfigRegistrationWrapper listenerWrapper;
 
-    protected void init(String messageLayer, String appContextId, Map<String, ?> properties, CallbackHandler callbackHandler, RegistrationWrapperRemover removerDelegate) {
+    protected void init(String messageLayer, String appContextId, Map<String, Object> properties, CallbackHandler callbackHandler, RegistrationWrapperRemover removerDelegate) {
         this.messageLayer = messageLayer;
         this.appContextId = appContextId;
         this.map = properties;

@@ -16,6 +16,10 @@
 
 package org.omnifaces.eleos.config.factory.file;
 
+import java.security.Security;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.omnifaces.eleos.config.factory.BaseAuthConfigFactory;
 
 /**
@@ -23,6 +27,11 @@ import org.omnifaces.eleos.config.factory.BaseAuthConfigFactory;
  * @author ronmonzillo
  */
 public class AuthConfigFileFactory extends BaseAuthConfigFactory {
+
+    /**
+     * The name of the Security property used to define the default providers used by the default AuthConfigFactory implementation class.
+     */
+    public static final String DEFAULT_FACTORY_DEFAULT_PROVIDERS = "authconfigprovider.factory.providers";
 
     // MUST "hide" regStore in derived class.
     private static volatile RegStoreFileParser regStore;
@@ -34,11 +43,19 @@ public class AuthConfigFileFactory extends BaseAuthConfigFactory {
      * contains an implementation of the getRegStore method.
      *
      * <p>
-     * All EntyInfo OBJECTS PASSED as default Entries MUST HAVE BEEN CONSTRUCTED USING THE FOLLOWING CONSTRUCTOR: 
-     * 
+     * All EntyInfo OBJECTS PASSED as default Entries MUST HAVE BEEN CONSTRUCTED USING THE FOLLOWING CONSTRUCTOR:
+     *
      * <pre>
      * <code>
-     * EntryInfo(String className, Map&lt;String, String&gt; properties);
+     * AuthConfigProviderEntry(String className);
+     * </code>
+     * </pre>
+     *
+     * or
+     *
+     * <pre>
+     * <code>
+     * AuthConfigProviderEntry(String className, Map&lt;String, String&gt; properties);
      * </code>
      * </pre>
      *
@@ -49,10 +66,11 @@ public class AuthConfigFileFactory extends BaseAuthConfigFactory {
         }
 
         String userDir = System.getProperty("user.dir");
+        String defaultProviderString = Security.getProperty(DEFAULT_FACTORY_DEFAULT_PROVIDERS);
 
         doWriteLocked(() -> {
             if (regStore == null) {
-                regStore = new RegStoreFileParser(userDir, CONF_FILE_NAME, null);
+                regStore = new RegStoreFileParser(userDir, CONF_FILE_NAME, getDefaultProviders(defaultProviderString));
                 _loadFactory();
             }
         });
@@ -61,5 +79,18 @@ public class AuthConfigFileFactory extends BaseAuthConfigFactory {
     @Override
     protected RegStoreFileParser getRegStore() {
         return doReadLocked(() -> regStore);
+    }
+
+    private List<AuthConfigProviderEntry> getDefaultProviders(String defaultProviderString) {
+        if (defaultProviderString == null) {
+            return null;
+        }
+
+        List<AuthConfigProviderEntry> defaultProviders = new ArrayList<>();
+        for (String defaultProviderClassName : defaultProviderString.split(" ")) {
+            defaultProviders.add(new AuthConfigProviderEntry(defaultProviderClassName));
+        }
+
+        return defaultProviders;
     }
 }

@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2022, 2022 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -54,7 +55,7 @@ public abstract class ModulesManager {
 
     public abstract <M> M[] getModules(M[] template, String authContextID) throws AuthException;
 
-    public abstract Map<String, ?> getInitProperties(int moduleNumber, Map<String, ?> properties);
+    public abstract Map<String, Object> getInitProperties(int moduleNumber, Map<String, ?> properties);
 
     public abstract boolean shouldStopProcessingModules(AuthStatus[] successValue, int moduleNumber, AuthStatus moduleStatus);
 

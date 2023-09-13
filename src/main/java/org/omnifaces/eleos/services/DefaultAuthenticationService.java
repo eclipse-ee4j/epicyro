@@ -67,10 +67,10 @@ public class DefaultAuthenticationService extends BaseAuthenticationService {
 
         init(HTTPSERVLET, appContextId, properties, callbackHandler, null);
 
-        if (!hasExactMatchAuthProvider()) {
+        if (properties.containsKey("authModuleId") && !hasExactMatchAuthProvider()) {
             setRegistrationId(
                 authConfigFactory.registerConfigProvider(
-                    new GFServerConfigProvider(configParser, authConfigFactory),
+                    new GFServerConfigProvider(properties, configParser, authConfigFactory),
                     HTTPSERVLET, appContextId,
                     "Eleos provider: " + HTTPSERVLET + ":" + appContextId));
         }

@@ -63,11 +63,19 @@ public class ObjectUtils {
             throw new RuntimeException(t);
         }
     }
-    
+
+    public static ConfigParser newConfigParser(String parserClassName) throws IOException {
+        return newConfigParser(parserClassName, null);
+    }
+
     public static ConfigParser newConfigParser(String parserClassName, Object config) throws IOException {
+        if (parserClassName == null) {
+            return null;
+        }
+
         ConfigParser newParser = createObject(parserClassName);
         newParser.initialize(config);
-        
+
         return newParser;
     }
 

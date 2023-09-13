@@ -98,11 +98,11 @@ public final class AuthConfigProviderEntry {
         this.properties = properties;
 
         if (registrationContext != null) {
-            this.registrationContexts = asList(new RegistrationContextImpl(
+            this.registrationContexts = new ArrayList<>(asList(new RegistrationContextImpl(
                 registrationContext.getMessageLayer(),
                 registrationContext.getAppContext(),
                 registrationContext.getDescription(),
-                registrationContext.isPersistent()));
+                registrationContext.isPersistent())));
         }
     }
 

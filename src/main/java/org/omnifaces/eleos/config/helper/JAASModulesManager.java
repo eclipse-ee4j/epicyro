@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2022, 2022 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -38,10 +39,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
-import jakarta.security.auth.message.AuthException;
-import jakarta.security.auth.message.AuthStatus;
 
 import org.omnifaces.eleos.config.jaas.ExtendedConfigFile;
+
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.AuthStatus;
 
 /**
  *
@@ -75,7 +77,7 @@ public class JAASModulesManager extends ModulesManager {
     }
 
     @Override
-    public Map<String, ?> getInitProperties(int i, Map<String, ?> properties) {
+    public Map<String, Object> getInitProperties(int i, Map<String, ?> properties) {
         Map<String, Object> initProperties = new HashMap<String, Object>();
 
         if (appConfigurationEntry[i] != null) {
@@ -127,7 +129,7 @@ public class JAASModulesManager extends ModulesManager {
      * @param <M> Type of the template
      * @param template template the template used to create the module
      * @param authContextID (ignored by this context system)
-     * @return the modules 
+     * @return the modules
      * @throws AuthException if something goes wrong
      */
     @Override

@@ -18,13 +18,17 @@ package org.omnifaces.eleos.config.helper;
 
 import static java.util.Arrays.asList;
 
+import java.io.Serializable;
 import java.security.Principal;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.security.auth.Subject;
 
-public class Caller implements Principal {
+public class Caller implements Principal, Serializable  {
+
+    private static final long serialVersionUID = 1L;
 
     private Principal callerPrincipal;
     private Set<String> groups = new HashSet<>();
@@ -85,6 +89,23 @@ public class Caller implements Principal {
 
     public void addGroups(String[] groups) {
         this.groups.addAll(asList(groups));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Caller)) {
+            return false;
+        }
+
+        Caller another = (Caller) o;
+        return Objects.equals(getName(), another.getName());
+    }
+
+
+    @Override
+    public int hashCode() {
+        return callerPrincipal == null || callerPrincipal.getName() == null? 0 :
+               31 * callerPrincipal.getName().hashCode();
     }
 
 }

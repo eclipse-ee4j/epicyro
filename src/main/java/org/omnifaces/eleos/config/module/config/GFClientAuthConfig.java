@@ -34,8 +34,8 @@ import jakarta.security.auth.message.config.ClientAuthContext;
 
 public class GFClientAuthConfig extends GFAuthConfig implements ClientAuthConfig {
 
-    public GFClientAuthConfig(ModuleConfigurationManager moduleConfigurationManager, AuthConfigProvider authConfigProvider, String messageLayer, String appContext, CallbackHandler handler) {
-        super(moduleConfigurationManager, authConfigProvider, messageLayer, appContext, handler, CLIENT);
+    public GFClientAuthConfig(Map<String, Object> properties, ModuleConfigurationManager moduleConfigurationManager, AuthConfigProvider authConfigProvider, String messageLayer, String appContext, CallbackHandler handler) {
+        super(properties, moduleConfigurationManager, authConfigProvider, messageLayer, appContext, handler, CLIENT);
     }
 
     @Override

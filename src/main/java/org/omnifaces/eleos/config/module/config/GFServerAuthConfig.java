@@ -34,8 +34,8 @@ import jakarta.security.auth.message.config.ServerAuthContext;
 
 public class GFServerAuthConfig extends GFAuthConfig implements ServerAuthConfig {
 
-    public GFServerAuthConfig(ModuleConfigurationManager moduleConfigurationManager, AuthConfigProvider provider, String layer, String appContext, CallbackHandler handler) {
-        super(moduleConfigurationManager, provider, layer, appContext, handler, SERVER);
+    public GFServerAuthConfig(Map<String, Object> properties, ModuleConfigurationManager moduleConfigurationManager, AuthConfigProvider provider, String layer, String appContext, CallbackHandler handler) {
+        super(properties, moduleConfigurationManager, provider, layer, appContext, handler, SERVER);
     }
 
     @Override

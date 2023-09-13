@@ -16,6 +16,9 @@
 
 package org.omnifaces.eleos.config.module.configprovider;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -23,6 +26,7 @@ import javax.security.auth.callback.CallbackHandler;
 
 import org.omnifaces.eleos.config.factory.ConfigParser;
 import org.omnifaces.eleos.config.helper.ModuleConfigurationManager;
+import org.omnifaces.eleos.config.helper.ObjectUtils;
 import org.omnifaces.eleos.config.module.config.GFClientAuthConfig;
 import org.omnifaces.eleos.config.module.config.GFServerAuthConfig;
 
@@ -43,10 +47,20 @@ public class GFServerConfigProvider implements AuthConfigProvider {
 
     public static final Logger logger = Logger.getLogger(GFServerConfigProvider.class.getName());
 
+    protected Map<String, Object> properties;
     protected ModuleConfigurationManager moduleConfigurationManager;
     protected AuthConfigFactory authConfigFactory;
 
     public GFServerConfigProvider(ConfigParser configParser, AuthConfigFactory authConfigFactory) {
+        this(new HashMap<>(), configParser, authConfigFactory);
+    }
+
+    public GFServerConfigProvider(Map<String, Object> properties, AuthConfigFactory authConfigFactory) {
+        this(properties, newConfigParser(), authConfigFactory);
+    }
+
+    public GFServerConfigProvider(Map<String, Object> properties, ConfigParser configParser, AuthConfigFactory authConfigFactory) {
+        this.properties = properties;
         this.authConfigFactory = authConfigFactory;
         this.moduleConfigurationManager = new ModuleConfigurationManager(configParser, authConfigFactory, this);
     }
@@ -56,23 +70,28 @@ public class GFServerConfigProvider implements AuthConfigProvider {
         this.authConfigFactory = authConfigFactory;
     }
 
-    public GFServerConfigProvider(Map properties, AuthConfigFactory factory) {
-        this.authConfigFactory = factory;
-    }
-
     @Override
     public ClientAuthConfig getClientAuthConfig(String messageLayer, String appContextId, CallbackHandler handler) throws AuthException {
-        return new GFClientAuthConfig(moduleConfigurationManager, this, messageLayer, appContextId, handler);
+        return new GFClientAuthConfig(properties, moduleConfigurationManager, this, messageLayer, appContextId, handler);
     }
 
     @Override
     public ServerAuthConfig getServerAuthConfig(String messageLayer, String appContextId, CallbackHandler handler) throws AuthException {
-        return new GFServerAuthConfig(moduleConfigurationManager, this, messageLayer, appContextId, handler);
+        return new GFServerAuthConfig(properties, moduleConfigurationManager, this, messageLayer, appContextId, handler);
     }
 
     @Override
     public void refresh() {
         moduleConfigurationManager.loadParser(this, authConfigFactory, null);
+    }
+
+    private static ConfigParser newConfigParser() {
+        String configParser = System.getProperty("config.parser");
+        if (configParser == null) {
+            return null;
+        }
+
+        return ObjectUtils.createObject(configParser);
     }
 
 }

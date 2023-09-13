@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2022, 2022 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -20,7 +21,9 @@ import static java.util.logging.Level.WARNING;
 import static org.omnifaces.eleos.config.helper.LogManager.JASPIC_LOGGER;
 import static org.omnifaces.eleos.config.helper.LogManager.RES_BUNDLE;
 
+import java.security.AccessController;
 import java.security.Permission;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -34,14 +37,16 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
-import jakarta.security.auth.message.AuthException;
+import org.omnifaces.eleos.config.factory.file.AuthConfigProviderEntry;
+import org.omnifaces.eleos.config.factory.file.RegStoreFileParser;
+import org.omnifaces.eleos.config.factory.singlemodule.DefaultAuthConfigProvider;
+import org.omnifaces.eleos.config.helper.OperationLock;
+
 import jakarta.security.auth.message.config.AuthConfigFactory;
 import jakarta.security.auth.message.config.AuthConfigProvider;
 import jakarta.security.auth.message.config.RegistrationListener;
-
-import org.omnifaces.eleos.config.factory.file.AuthConfigProviderEntry;
-import org.omnifaces.eleos.config.factory.file.RegStoreFileParser;
-import org.omnifaces.eleos.config.helper.OperationLock;
+import jakarta.security.auth.message.module.ServerAuthModule;
+import jakarta.servlet.ServletContext;
 
 /**
  * This class implements methods in the abstract class AuthConfigFactory.
@@ -51,6 +56,8 @@ import org.omnifaces.eleos.config.helper.OperationLock;
 public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
 
     private static final Logger logger = Logger.getLogger(JASPIC_LOGGER, RES_BUNDLE);
+
+    private static final String CONTEXT_REGISTRATION_ID = "org.glassfish.security.message.registrationId";
 
     private static final ReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
@@ -288,6 +295,72 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
         if (preExistingListenersMap != null) {
             notifyListeners(preExistingListenersMap);
         }
+    }
+
+    /**
+     * Gets the app context ID from the servlet context.
+     *
+     * <p>
+     * The app context ID is the ID that Jakarta Authentication associates with the given application.
+     * In this case that given application is the web application corresponding to the
+     * ServletContext.
+     *
+     * @param context the servlet context for which to obtain the Jakarta Authentication app context ID
+     * @return the app context ID for the web application corresponding to the given context
+     */
+    public static String getAppContextID(ServletContext context) {
+        return context.getVirtualServerName() + " " + context.getContextPath();
+    }
+
+    @Override
+    public String registerServerAuthModule(ServerAuthModule serverAuthModule, Object context) {
+        if (!(context instanceof ServletContext)) {
+            return null;
+        }
+
+        ServletContext servletContext = (ServletContext) context;
+
+        // Register the factory-factory-factory for the SAM
+        @SuppressWarnings("deprecation")
+        String registrationId = AccessController.doPrivileged(new PrivilegedAction<String>() {
+            @Override
+            public String run() {
+                return registerConfigProvider(
+                        new DefaultAuthConfigProvider(serverAuthModule),
+                        "HttpServlet",
+                        getAppContextID(servletContext),
+                        "Default single SAM authentication config provider");
+            }
+        });
+
+        // Remember the registration ID returned by the factory, so we can unregister the JASPIC module when the web module
+        // is undeployed. JASPIC being the low level API that it is won't do this automatically.
+        servletContext.setAttribute(CONTEXT_REGISTRATION_ID, registrationId);
+
+        return registrationId;
+    }
+
+    @Override
+    public void removeServerAuthModule(Object context) {
+        if (!(context instanceof ServletContext)) {
+            return;
+        }
+
+        ServletContext servletContext = (ServletContext) context;
+
+        String registrationId = (String) servletContext.getAttribute(CONTEXT_REGISTRATION_ID);
+        if (!isEmpty(registrationId)) {
+            AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+                @Override
+                public Boolean run() {
+                    return removeRegistration(registrationId);
+                }
+            });
+        }
+    }
+
+    private static boolean isEmpty(String string) {
+        return string == null || string.isEmpty();
     }
 
     abstract protected RegStoreFileParser getRegStore();

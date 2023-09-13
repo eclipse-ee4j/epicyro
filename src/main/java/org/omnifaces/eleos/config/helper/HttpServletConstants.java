@@ -22,7 +22,7 @@ package org.omnifaces.eleos.config.helper;
 public class HttpServletConstants {
 
     public static final String AUTH_TYPE = "jakarta.servlet.http.authType";
-    public static final String POLICY_CONTEXT = "javax.security.jacc.PolicyContext";
+    public static final String POLICY_CONTEXT = "jakarta.security.jacc.PolicyContext";
     public static final String IS_MANDATORY = "jakarta.security.auth.message.MessagePolicy.isMandatory";
     public static final String REGISTER_SESSION = "jakarta.servlet.http.registerSession";
     public static final String SOAP = "SOAP";
