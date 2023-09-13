@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
- * Copyright (c) 1997, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -15,50 +14,37 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-
 package com.sun.jaspic.config.helper;
 
-import org.glassfish.logging.annotation.LogMessageInfo;
-import org.glassfish.logging.annotation.LogMessagesResourceBundle;
-import org.glassfish.logging.annotation.LoggerInfo;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  *
+ * 
  */
 public class JASPICLogManager {
 
-    @LoggerInfo(subsystem = "jaspic", description = "logger for jaspic security config module", publish = true)
-    public static final String LOGGER = "com.sun.logging.enterprise.system.jaspic.config";
+    /**
+     * PACKAGE_ROOT the prefix for the packages where logger resource
+     * bundles reside.
+     */
+    public static final String PACKAGE_ROOT = "com.sun.logging.";
 
-    @LogMessagesResourceBundle
-    public static final String BUNDLE = "com.sun.jaspic.config.helper.LogMessages";
+    /**
+     * RESOURCE_BUNDLE the name of the logging resource bundles.
+     */
+    public static final String RESOURCE_BUNDLE = "LogStrings";
 
-    @LogMessageInfo(level = "WARNING", message = "SEC1203: GFAuthConfigFactory unable to load Provider: ")
-    public static final String MSG_UNABLE_LOAD_PROVIDER = "jmac.factory_unable_to_load_provider";
+    /**
+     * Field
+     */
+    public static final String JASPIC_LOGGER = "enterprise.system.jaspic.security";
 
-    @LogMessageInfo(level = "WARNING", message = "SEC1204: GFAuthConfigFactory loader failure")
-    public static final String MSG_LOADER_FAILURE = "jmac.factory_auth_config_loader_failure";
-
-    @LogMessageInfo(
-        level = "WARNING",
-        message = "SEC1205: Cannot write to file {0}. Updated provider list will not be persisted.")
-    public static final String MSG_CANNOT_WRITE_PROVIDERS_TO_FILE = "jmac.factory_cannot_write_file";
-
-    @LogMessageInfo(
-        level = "WARNING",
-        message = "SEC1206: Could not persist updated provider list. Will use default providers when reloaded.")
-    public static final String MSG_CANNOT_PERSIST_PROVIDERS = "jmac.factory_could_not_persist";
-
-    @LogMessageInfo(
-        level = "WARNING",
-        message = "SEC1207: Could not read auth configuration file. Will use default providers.")
-    public static final String MSG_COULD_NOT_READ_AUTH_CFG = "jmac.factory_could_not_read";
-
-    @LogMessageInfo(
-        level = "FINE",
-        message = "SEC1208: Configuration file does not exist at {0}. Will use default providers.")
-    public static final String MSG_FILE_NOT_EXIST = "jmac.factory_file_not_found";
-
-    @LogMessageInfo(level = "INFO", message = "SEC1210: Creating JMAC Configuration file {0}.")
-    public static final String MSG_CREATING_JMAC_FILE = "jmac.factory_creating_conf_file";
+    public static final String RES_BUNDLE = PACKAGE_ROOT + JASPIC_LOGGER + "." + RESOURCE_BUNDLE;
 }

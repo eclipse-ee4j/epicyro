@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -24,13 +23,13 @@ package com.sun.jaspic.config.factory;
 public class AuthConfigFileFactory extends BaseAuthConfigFactory {
 
     // MUST "hide" regStore in derived class.
-    static volatile RegStoreFileParser regStore;
+    static volatile RegStoreFileParser regStore = null;
 
     /**
      * to specialize the defaultEntries passed to the RegStoreFileParser
      * constructor, create another subclass of BaseAuthconfigFactory, that is
      * basically a copy of this class, with a change to the third argument
-     * of the call to new ResSToreFileParser.
+     * of the call to new ResSToreFileParser. 
      * to ensure runtime use of the the associated regStore, make sure that
      * the new subclass also contains an implementation of the getRegStore method.
      * As done within this class, use the locks defined in

@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
- * Copyright (c) 2021 Contributors to the Eclipse Foundation
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -21,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContext;
+import javax.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
 /*
  * Each entry is either a constructor entry or a registration entry.
@@ -40,7 +39,7 @@ public final class EntryInfo {
     /*
      * This will create a constructor entry. The className
      * must not be null.
-     *
+     * 
      * ONLY CONSTRUCTOR that should be used used to construct defaultEntries (passed
      * RegStoreFileParser construction). DO NOT USE OTHER CONSTRUCTORS to define
      * defaultEntries because they can create persisted registration entries which
@@ -65,7 +64,7 @@ public final class EntryInfo {
 
         if (ctxs == null || ctxs.isEmpty()) {
             throw new IllegalArgumentException(
-                "Registration entry must contain one or " +
+                "Registration entry must contain one or" +
                 "more registration contexts");
         }
         this.className = className;

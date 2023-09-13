@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
- * Copyright (c) 1997, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -17,10 +16,9 @@
 
 package com.sun.jaspic.config.delegate;
 
-import jakarta.security.auth.message.MessageInfo;
-import jakarta.security.auth.message.MessagePolicy;
-
 import java.util.Map;
+import javax.security.auth.message.MessageInfo;
+import javax.security.auth.message.MessagePolicy;
 
 /**
  *
@@ -28,13 +26,13 @@ import java.util.Map;
  */
 public interface MessagePolicyDelegate {
 
-    MessagePolicy getRequestPolicy(String authContextID, Map properties);
+    public MessagePolicy getRequestPolicy(String authContextID, Map properties);
 
-    MessagePolicy getResponsePolicy(String authContextID, Map properties);
+    public MessagePolicy getResponsePolicy(String authContextID, Map properties);
 
-    Class[] getMessageTypes();
+    public Class[] getMessageTypes();
+    
+    public String getAuthContextID(MessageInfo messageInfo);
 
-    String getAuthContextID(MessageInfo messageInfo);
-
-    boolean isProtected();
+    public boolean isProtected();
 }
