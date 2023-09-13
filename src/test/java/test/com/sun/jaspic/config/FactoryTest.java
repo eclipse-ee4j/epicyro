@@ -46,10 +46,10 @@ import javax.security.auth.message.config.ServerAuthContext;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.omnifaces.jaspic.config.factory.AuthConfigFileFactory;
-import org.omnifaces.jaspic.config.factory.BaseAuthConfigFactory;
-import org.omnifaces.jaspic.config.factory.EntryInfo;
-import org.omnifaces.jaspic.config.factory.RegStoreFileParser;
+import org.omnifaces.elios.config.factory.BaseAuthConfigFactory;
+import org.omnifaces.elios.config.factory.file.AuthConfigFileFactory;
+import org.omnifaces.elios.config.factory.file.AuthConfigProviderEntry;
+import org.omnifaces.elios.config.factory.file.RegStoreFileParser;
 
 import static org.junit.Assert.*;
 
@@ -345,8 +345,8 @@ public class FactoryTest {
             wLock.lock();
             try {
                 if (regStore == null) {
-                    EntryInfo e = new EntryInfo(_AuthConfigProvider.class.getName(),null);
-                    List<EntryInfo> defaultEntries = new ArrayList<EntryInfo>();
+                    AuthConfigProviderEntry e = new AuthConfigProviderEntry(_AuthConfigProvider.class.getName(),null);
+                    List<AuthConfigProviderEntry> defaultEntries = new ArrayList<AuthConfigProviderEntry>();
                     defaultEntries.add(e);
                     regStore = new RegStoreFileParser(userDir,
                             BaseAuthConfigFactory.CONF_FILE_NAME,defaultEntries);
@@ -396,8 +396,8 @@ public class FactoryTest {
             wLock.lock();
             try {
                 if (regStore == null) {
-                    EntryInfo e = new EntryInfo(_AuthConfigProvider.class.getName(),null);
-                    List<EntryInfo> defaultEntries = new ArrayList<EntryInfo>();
+                    AuthConfigProviderEntry e = new AuthConfigProviderEntry(_AuthConfigProvider.class.getName(),null);
+                    List<AuthConfigProviderEntry> defaultEntries = new ArrayList<AuthConfigProviderEntry>();
                     defaultEntries.add(e);
                     regStore = new RegStoreFileParser(userDir,
                             BaseAuthConfigFactory.CONF_FILE_NAME,defaultEntries);
