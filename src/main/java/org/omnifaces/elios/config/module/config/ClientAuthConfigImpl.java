@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-package org.omnifaces.elios.config.helper;
+package org.omnifaces.elios.config.module.config;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,19 +30,21 @@ import javax.security.auth.message.config.ClientAuthContext;
 import javax.security.auth.message.module.ClientAuthModule;
 
 import org.omnifaces.elios.config.delegate.MessagePolicyDelegate;
+import org.omnifaces.elios.config.helper.ModulesManager;
+import org.omnifaces.elios.config.helper.EpochCarrier;
 
 /**
  *
  * @author Ron Monzillo
  */
-public class ClientAuthConfigHelper extends AuthConfigHelper implements ClientAuthConfig {
+public class ClientAuthConfigImpl extends BaseAuthConfigImpl implements ClientAuthConfig {
 
     final static AuthStatus[] vR_SuccessValue = { AuthStatus.SUCCESS };
     final static AuthStatus[] sR_SuccessValue = { AuthStatus.SEND_SUCCESS };
     HashMap<String, HashMap<Integer, ClientAuthContext>> contextMap;
-    AuthContextHelper acHelper;
+    ModulesManager acHelper;
 
-    protected ClientAuthConfigHelper(String loggerName, EpochCarrier providerEpoch, AuthContextHelper acHelper, MessagePolicyDelegate mpDelegate, String layer,
+    public ClientAuthConfigImpl(String loggerName, EpochCarrier providerEpoch, ModulesManager acHelper, MessagePolicyDelegate mpDelegate, String layer,
             String appContext, CallbackHandler cbh) throws AuthException {
         super(loggerName, providerEpoch, mpDelegate, layer, appContext, cbh);
         this.acHelper = acHelper;

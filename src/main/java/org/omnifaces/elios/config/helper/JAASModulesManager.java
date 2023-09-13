@@ -14,7 +14,12 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-package org.omnifaces.elios.config.jaas;
+package org.omnifaces.elios.config.helper;
+
+import static java.util.logging.Level.FINE;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.OPTIONAL;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUISITE;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.SUFFICIENT;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -26,31 +31,38 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
+
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
 import javax.security.auth.message.AuthException;
 import javax.security.auth.message.AuthStatus;
 
-import org.omnifaces.elios.config.helper.AuthContextHelper;
+import org.omnifaces.elios.config.jaas.ExtendedConfigFile;
 
 /**
  *
  * @author Ron Monzillo
  */
-public class JAASAuthContextHelper extends AuthContextHelper {
+public class JAASModulesManager extends ModulesManager {
 
     private static final String DEFAULT_ENTRY_NAME = "other";
-    private static final Class[] PARAMS = {};
+    private static final Class<?>[] PARAMS = {};
     private static final Object[] ARGS = {};
+    
+    private ExtendedConfigFile jaasConfig;
+    
+    private final String appContext;
+
     // may be more than one delegate for a given jaas config file
     private ReentrantReadWriteLock instanceReadWriteLock = new ReentrantReadWriteLock();
+    
     private Lock instanceWriteLock = instanceReadWriteLock.writeLock();
-    ExtendedConfigFile jaasConfig;
-    private final String appContext;
-    private AppConfigurationEntry[] entry;
-    private Constructor[] ctor;
+    
+    private AppConfigurationEntry[] appConfigurationEntry;
+    
+    private Constructor<?>[] loginModuleConstructors;
 
-    public JAASAuthContextHelper(String loggerName, boolean returnNullContexts, ExtendedConfigFile jaasConfig, Map properties, String appContext)
+    public JAASModulesManager(String loggerName, boolean returnNullContexts, ExtendedConfigFile jaasConfig, Map properties, String appContext)
             throws AuthException {
         super(loggerName, returnNullContexts);
         this.jaasConfig = jaasConfig;
@@ -63,12 +75,12 @@ public class JAASAuthContextHelper extends AuthContextHelper {
         boolean foundDefault = false;
         instanceWriteLock.lock();
         try {
-            entry = jaasConfig.getAppConfigurationEntry(appContext);
-            if (entry == null) {
+            appConfigurationEntry = jaasConfig.getAppConfigurationEntry(appContext);
+            if (appConfigurationEntry == null) {
                 // NEED TO MAKE SURE THIS LOOKUP only occurs when registered for *
-                entry = jaasConfig.getAppConfigurationEntry(DEFAULT_ENTRY_NAME);
-                if (entry == null) {
-                    entry = new AppConfigurationEntry[0];
+                appConfigurationEntry = jaasConfig.getAppConfigurationEntry(DEFAULT_ENTRY_NAME);
+                if (appConfigurationEntry == null) {
+                    appConfigurationEntry = new AppConfigurationEntry[0];
                 } else {
                     foundDefault = true;
                 }
@@ -76,7 +88,7 @@ public class JAASAuthContextHelper extends AuthContextHelper {
                 found = true;
             }
             // initializeContextMap();
-            ctor = null;
+            loginModuleConstructors = null;
         } finally {
             instanceWriteLock.unlock();
         }
@@ -90,19 +102,19 @@ public class JAASAuthContextHelper extends AuthContextHelper {
     }
 
     private <M> void loadConstructors(M[] template, String authContextID) throws AuthException {
-        if (ctor == null) {
+        if (loginModuleConstructors == null) {
             try {
                 final Class moduleType = template.getClass().getComponentType();
-                ctor = (Constructor[]) AccessController.doPrivileged(new java.security.PrivilegedExceptionAction() {
+                loginModuleConstructors = (Constructor[]) AccessController.doPrivileged(new java.security.PrivilegedExceptionAction() {
 
                     @Override
-                    public Object run() throws java.lang.ClassNotFoundException, java.lang.NoSuchMethodException, java.lang.InstantiationException,
-                            java.lang.IllegalAccessException, java.lang.reflect.InvocationTargetException {
-                        Constructor[] ctor = new Constructor[entry.length];
+                    public Object run() throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
+                            IllegalAccessException, InvocationTargetException {
+                        Constructor[] ctor = new Constructor[appConfigurationEntry.length];
                         ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                        for (int i = 0; i < entry.length; i++) {
+                        for (int i = 0; i < appConfigurationEntry.length; i++) {
                             ctor[i] = null;
-                            String clazz = entry[i].getLoginModuleName();
+                            String clazz = appConfigurationEntry[i].getLoginModuleName();
                             try {
                                 Class c = Class.forName(clazz, true, loader);
                                 if (moduleType.isAssignableFrom(c)) {
@@ -116,7 +128,7 @@ public class JAASAuthContextHelper extends AuthContextHelper {
                         return ctor;
                     }
                 });
-            } catch (java.security.PrivilegedActionException pae) {
+            } catch (PrivilegedActionException pae) {
                 AuthException ae = new AuthException();
                 ae.initCause(pae.getCause());
                 throw ae;
@@ -125,7 +137,7 @@ public class JAASAuthContextHelper extends AuthContextHelper {
     }
 
     @Override
-    protected final void refresh() {
+    public final void refresh() {
         jaasConfig.refresh();
         initialize();
     }
@@ -142,7 +154,7 @@ public class JAASAuthContextHelper extends AuthContextHelper {
     @Override
     public <M> boolean hasModules(M[] template, String authContextID) throws AuthException {
         loadConstructors(template, authContextID);
-        for (Constructor c : ctor) {
+        for (Constructor c : loginModuleConstructors) {
             if (c != null) {
                 return true;
             }
@@ -163,8 +175,8 @@ public class JAASAuthContextHelper extends AuthContextHelper {
     public <M> M[] getModules(M[] template, String authContextID) throws AuthException {
         loadConstructors(template, authContextID);
         ArrayList<M> list = new ArrayList<M>();
-        for (int i = 0; i < ctor.length; i++) {
-            if (ctor[i] == null) {
+        for (int i = 0; i < loginModuleConstructors.length; i++) {
+            if (loginModuleConstructors[i] == null) {
                 list.add(i, null);
             } else {
                 final int j = i;
@@ -173,7 +185,7 @@ public class JAASAuthContextHelper extends AuthContextHelper {
 
                         @Override
                         public M run() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-                            return (M) ctor[j].newInstance(ARGS);
+                            return (M) loginModuleConstructors[j].newInstance(ARGS);
                         }
                     }));
                 } catch (PrivilegedActionException pae) {
@@ -189,11 +201,11 @@ public class JAASAuthContextHelper extends AuthContextHelper {
     @Override
     public Map<String, ?> getInitProperties(int i, Map<String, ?> properties) {
         Map<String, Object> rvalue = new HashMap<String, Object>();
-        if (entry[i] != null) {
+        if (appConfigurationEntry[i] != null) {
             if (properties != null && !properties.isEmpty()) {
                 rvalue.putAll(properties);
             }
-            Map<String, Object> options = (Map<String, Object>) entry[i].getOptions();
+            Map<String, Object> options = (Map<String, Object>) appConfigurationEntry[i].getOptions();
             if (options != null && !options.isEmpty()) {
                 rvalue.putAll(options);
             }
@@ -203,16 +215,16 @@ public class JAASAuthContextHelper extends AuthContextHelper {
 
     @Override
     public boolean exitContext(AuthStatus[] successValue, int i, AuthStatus moduleStatus) {
-        if (entry[i] != null && ctor[i] != null) {
-            LoginModuleControlFlag flag = entry[i].getControlFlag();
-            if (LoginModuleControlFlag.REQUISITE.equals(flag)) {
+        if (appConfigurationEntry[i] != null && loginModuleConstructors[i] != null) {
+            LoginModuleControlFlag flag = appConfigurationEntry[i].getControlFlag();
+            if (REQUISITE.equals(flag)) {
                 for (AuthStatus s : successValue) {
                     if (moduleStatus == s) {
                         return false;
                     }
                 }
                 return true;
-            } else if (LoginModuleControlFlag.SUFFICIENT.equals(flag)) {
+            } else if (SUFFICIENT.equals(flag)) {
                 for (AuthStatus s : successValue) {
                     if (moduleStatus == s) {
                         return true;
@@ -228,12 +240,12 @@ public class JAASAuthContextHelper extends AuthContextHelper {
     public AuthStatus getReturnStatus(AuthStatus[] successValue, AuthStatus defaultFailStatus, AuthStatus[] status, int position) {
         AuthStatus result = null;
         for (int i = 0; i <= position; i++) {
-            if (entry[i] != null && ctor[i] != null) {
-                LoginModuleControlFlag flag = entry[i].getControlFlag();
-                if (isLoggable(Level.FINE)) {
-                    logIfLevel(Level.FINE, null, "getReturnStatus - flag: ", flag.toString());
+            if (appConfigurationEntry[i] != null && loginModuleConstructors[i] != null) {
+                LoginModuleControlFlag flag = appConfigurationEntry[i].getControlFlag();
+                if (isLoggable(FINE)) {
+                    logIfLevel(FINE, null, "getReturnStatus - flag: ", flag.toString());
                 }
-                if (flag == LoginModuleControlFlag.REQUIRED || flag == LoginModuleControlFlag.REQUISITE) {
+                if (flag == LoginModuleControlFlag.REQUIRED || flag == REQUISITE) {
                     boolean isSuccessValue = false;
                     for (AuthStatus s : successValue) {
                         if (status[i] == s) {
@@ -246,19 +258,19 @@ public class JAASAuthContextHelper extends AuthContextHelper {
                         }
                         continue;
                     }
-                    if (isLoggable(Level.FINE)) {
-                        logIfLevel(Level.FINE, null, "ReturnStatus - REQUIRED or REQUISITE failure: ", status[i].toString());
+                    if (isLoggable(FINE)) {
+                        logIfLevel(FINE, null, "ReturnStatus - REQUIRED or REQUISITE failure: ", status[i].toString());
                     }
                     return status[i];
-                } else if (flag == LoginModuleControlFlag.SUFFICIENT) {
+                } else if (flag == SUFFICIENT) {
                     if (exitContext(successValue, i, status[i])) {
-                        if (isLoggable(Level.FINE)) {
-                            logIfLevel(Level.FINE, null, "ReturnStatus - Sufficient success: ", status[i].toString());
+                        if (isLoggable(FINE)) {
+                            logIfLevel(FINE, null, "ReturnStatus - Sufficient success: ", status[i].toString());
                         }
                         return status[i];
                     }
 
-                } else if (flag == LoginModuleControlFlag.OPTIONAL) {
+                } else if (flag == OPTIONAL) {
                     if (result == null) {
                         for (AuthStatus s : successValue) {
                             if (status[i] == s) {
@@ -270,13 +282,13 @@ public class JAASAuthContextHelper extends AuthContextHelper {
             }
         }
         if (result != null) {
-            if (isLoggable(Level.FINE)) {
-                logIfLevel(Level.FINE, null, "ReturnStatus - result: ", result.toString());
+            if (isLoggable(FINE)) {
+                logIfLevel(FINE, null, "ReturnStatus - result: ", result.toString());
             }
             return result;
         }
-        if (isLoggable(Level.FINE)) {
-            logIfLevel(Level.FINE, null, "ReturnStatus - Default faiure status: ", defaultFailStatus.toString());
+        if (isLoggable(FINE)) {
+            logIfLevel(FINE, null, "ReturnStatus - Default faiure status: ", defaultFailStatus.toString());
         }
         return defaultFailStatus;
     }

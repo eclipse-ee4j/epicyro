@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-package org.omnifaces.elios.config.helper;
+package org.omnifaces.elios.config.module.configprovider;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -26,6 +26,10 @@ import javax.security.auth.message.config.AuthConfigFactory;
 import javax.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
 import org.omnifaces.elios.config.delegate.MessagePolicyDelegate;
+import org.omnifaces.elios.config.helper.EpochCarrier;
+import org.omnifaces.elios.config.helper.ModulesManager;
+import org.omnifaces.elios.config.module.config.ClientAuthConfigImpl;
+import org.omnifaces.elios.config.module.config.ServerAuthConfigImpl;
 
 import javax.security.auth.message.config.AuthConfigProvider;
 import javax.security.auth.message.config.ClientAuthConfig;
@@ -35,7 +39,7 @@ import javax.security.auth.message.config.ServerAuthConfig;
  *
  * @author Ron Monzillo
  */
-public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
+public abstract class BaseAuthConfigProvider implements AuthConfigProvider {
 
     public static final String LAYER_NAME_KEY = "message.layer";
     public static final String ALL_LAYERS = "*";
@@ -49,7 +53,7 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
     HashSet<String> selfRegistered;
     EpochCarrier epochCarrier;
 
-    protected AuthConfigProviderHelper() {
+    protected BaseAuthConfigProvider() {
         selfRegistered = new HashSet<String>();
         epochCarrier = new EpochCarrier();
     }
@@ -159,13 +163,13 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
 
     @Override
     public ClientAuthConfig getClientAuthConfig(String layer, String appContext, CallbackHandler cbh) throws AuthException {
-        return new ClientAuthConfigHelper(getLoggerName(), epochCarrier, getAuthContextHelper(appContext, true), getMessagePolicyDelegate(appContext), layer,
+        return new ClientAuthConfigImpl(getLoggerName(), epochCarrier, getAuthContextHelper(appContext, true), getMessagePolicyDelegate(appContext), layer,
                 appContext, getClientCallbackHandler(cbh));
     }
 
     @Override
     public ServerAuthConfig getServerAuthConfig(String layer, String appContext, CallbackHandler cbh) throws AuthException {
-        return new ServerAuthConfigHelper(getLoggerName(), epochCarrier, getAuthContextHelper(appContext, true), getMessagePolicyDelegate(appContext), layer,
+        return new ServerAuthConfigImpl(getLoggerName(), epochCarrier, getAuthContextHelper(appContext, true), getMessagePolicyDelegate(appContext), layer,
                 appContext, getServerCallbackHandler(cbh));
     }
 
@@ -211,7 +215,7 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
     }
 
     public String getLoggerName() {
-        return getProperty(LOGGER_NAME_KEY, AuthConfigProviderHelper.class.getName());
+        return getProperty(LOGGER_NAME_KEY, BaseAuthConfigProvider.class.getName());
     }
 
     public abstract Map<String, ?> getProperties();
@@ -220,7 +224,7 @@ public abstract class AuthConfigProviderHelper implements AuthConfigProvider {
 
     public abstract RegistrationContext[] getSelfRegistrationContexts();
 
-    public abstract AuthContextHelper getAuthContextHelper(String appContext, boolean returnNullContexts) throws AuthException;
+    public abstract ModulesManager getAuthContextHelper(String appContext, boolean returnNullContexts) throws AuthException;
 
     public abstract MessagePolicyDelegate getMessagePolicyDelegate(String appContext) throws AuthException;
 }

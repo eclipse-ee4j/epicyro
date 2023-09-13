@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-package org.omnifaces.elios.config.jaas;
+package org.omnifaces.elios.config.module.configprovider;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -24,14 +24,15 @@ import javax.security.auth.message.AuthException;
 import javax.security.auth.message.config.AuthConfigFactory;
 import javax.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
-import org.omnifaces.elios.config.helper.AuthConfigProviderHelper;
-import org.omnifaces.elios.config.helper.AuthContextHelper;
+import org.omnifaces.elios.config.helper.JAASModulesManager;
+import org.omnifaces.elios.config.helper.ModulesManager;
+import org.omnifaces.elios.config.jaas.ExtendedConfigFile;
 
 /**
  *
  * @author Ron Monzillo
  */
-public abstract class JAASAuthConfigProvider extends AuthConfigProviderHelper {
+public abstract class JAASAuthConfigProvider extends BaseAuthConfigProvider {
 
     private static final String CONFIG_FILE_NAME_KEY = "config.file.name";
     private static final String DEFAULT_JAAS_APP_NAME = "other";
@@ -120,8 +121,8 @@ public abstract class JAASAuthConfigProvider extends AuthConfigProviderHelper {
     }
 
     @Override
-    public AuthContextHelper getAuthContextHelper(String appContext, boolean returnNullContexts) throws AuthException {
-        return new JAASAuthContextHelper(getLoggerName(), returnNullContexts, jaasConfig, properties, appContext);
+    public ModulesManager getAuthContextHelper(String appContext, boolean returnNullContexts) throws AuthException {
+        return new JAASModulesManager(getLoggerName(), returnNullContexts, jaasConfig, properties, appContext);
     }
 
     @Override

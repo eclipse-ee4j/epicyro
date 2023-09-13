@@ -22,6 +22,7 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.message.config.AuthConfigProvider;
 
 import org.omnifaces.elios.config.helper.HttpServletConstants;
+import org.omnifaces.elios.config.module.configprovider.GFServerConfigProvider;
 import org.omnifaces.enterprise.deployment.WebBundleDescriptor;
 import org.omnifaces.enterprise.deployment.runtime.web.SunWebApp;
 import org.omnifaces.enterprise.deployment.web.LoginConfiguration;

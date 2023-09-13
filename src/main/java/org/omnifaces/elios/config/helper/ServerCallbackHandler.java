@@ -20,7 +20,7 @@
  * Created on September 14, 2004, 12:56 PM
  */
 
-package org.omnifaces.elios.services.callback;
+package org.omnifaces.elios.config.helper;
 
 import java.io.IOException;
 
@@ -41,9 +41,9 @@ import javax.security.auth.message.callback.TrustStoreCallback;
  * @author Harpreet Singh
  * @author Shing Wai Chan
  */
-final class ServerContainerCallbackHandler extends BaseContainerCallbackHandler {
+final class ServerCallbackHandler extends BaseCallbackHandler {
 
-    ServerContainerCallbackHandler() {
+    ServerCallbackHandler() {
     }
 
     protected void handleSupportedCallbacks(Callback[] callbacks) throws IOException, UnsupportedCallbackException {

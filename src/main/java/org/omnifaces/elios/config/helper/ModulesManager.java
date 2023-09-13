@@ -26,17 +26,17 @@ import javax.security.auth.message.AuthStatus;
  *
  * @author Ron Monzillo
  */
-public abstract class AuthContextHelper {
+public abstract class ModulesManager {
 
     String loggerName;
     private boolean returnNullContexts = false;
 
     // include this to force subclasses to call constructor with LoggerName
-    private AuthContextHelper() {
+    private ModulesManager() {
 
     }
 
-    protected AuthContextHelper(String loggerName, boolean returnNullContexts) {
+    protected ModulesManager(String loggerName, boolean returnNullContexts) {
         this.loggerName = loggerName;
         this.returnNullContexts = returnNullContexts;
     }
@@ -75,7 +75,7 @@ public abstract class AuthContextHelper {
         return null;
     }
 
-    protected abstract void refresh();
+    public abstract void refresh();
 
     public boolean returnsNullContexts() {
         return returnNullContexts;

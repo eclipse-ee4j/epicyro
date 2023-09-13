@@ -33,7 +33,7 @@ import org.jvnet.hk2.config.ConfigListener;
 import org.jvnet.hk2.config.ConfigSupport;
 import org.jvnet.hk2.config.NotProcessed;
 import org.jvnet.hk2.config.UnprocessedChangeEvents;
-import org.omnifaces.elios.services.config.GFServerConfigProvider;
+import org.omnifaces.elios.config.module.configprovider.GFServerConfigProvider;
 import org.omnifaces.enterprise.config.serverbeans.MessageSecurityConfig;
 import org.omnifaces.enterprise.config.serverbeans.SecurityService;
 import org.omnifaces.logging.LogDomains;

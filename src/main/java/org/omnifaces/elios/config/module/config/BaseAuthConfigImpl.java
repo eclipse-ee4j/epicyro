@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-package org.omnifaces.elios.config.helper;
+package org.omnifaces.elios.config.module.config;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,14 +26,16 @@ import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.message.AuthException;
 import javax.security.auth.message.MessageInfo;
+import javax.security.auth.message.config.AuthConfig;
 
 import org.omnifaces.elios.config.delegate.MessagePolicyDelegate;
+import org.omnifaces.elios.config.helper.EpochCarrier;
 
 /**
  *
  * @author Ron Monzillo
  */
-public abstract class AuthConfigHelper {
+public abstract class BaseAuthConfigImpl implements AuthConfig {
 
     String loggerName;
     EpochCarrier providerEpoch;
@@ -46,7 +48,7 @@ public abstract class AuthConfigHelper {
     private Lock instanceReadLock = instanceReadWriteLock.readLock();
     private Lock instanceWriteLock = instanceReadWriteLock.writeLock();
 
-    public AuthConfigHelper(String loggerName, EpochCarrier providerEpoch, MessagePolicyDelegate mpDelegate, String layer, String appContext,
+    public BaseAuthConfigImpl(String loggerName, EpochCarrier providerEpoch, MessagePolicyDelegate mpDelegate, String layer, String appContext,
             CallbackHandler cbh) throws AuthException {
 
         this.loggerName = loggerName;

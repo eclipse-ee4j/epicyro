@@ -31,7 +31,7 @@ import javax.security.auth.message.config.AuthConfigFactory;
 import javax.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
 import org.omnifaces.elios.config.factory.file.AuthConfigFileFactory;
-import org.omnifaces.elios.config.servlet.JAASServletAuthConfigProvider;
+import org.omnifaces.elios.config.module.configprovider.JAASServletAuthConfigProvider;
 
 import javax.security.auth.message.config.AuthConfigProvider;
 import javax.security.auth.message.config.RegistrationListener;

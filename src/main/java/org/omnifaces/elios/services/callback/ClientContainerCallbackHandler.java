@@ -38,6 +38,7 @@ import javax.security.auth.message.callback.PrivateKeyCallback;
 import javax.security.auth.message.callback.SecretKeyCallback;
 import javax.security.auth.message.callback.TrustStoreCallback;
 
+import org.omnifaces.elios.config.helper.BaseCallbackHandler;
 import org.omnifaces.enterprise.security.SecurityServicesUtil;
 import org.omnifaces.enterprise.security.UsernamePasswordStore;
 
@@ -47,7 +48,7 @@ import org.omnifaces.enterprise.security.UsernamePasswordStore;
  * @author Harpreet Singh
  * @author Shing Wai Chan
  */
-final class ClientContainerCallbackHandler extends BaseContainerCallbackHandler {
+final class ClientContainerCallbackHandler extends BaseCallbackHandler {
 
     private static final String LOGIN_NAME = "j2eelogin.name";
     private static final String LOGIN_PASSWORD = "j2eelogin.password";

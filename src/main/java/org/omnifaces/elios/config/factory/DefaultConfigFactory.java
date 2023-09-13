@@ -21,8 +21,8 @@ import java.util.List;
 
 import org.omnifaces.elios.config.factory.file.AuthConfigProviderEntry;
 import org.omnifaces.elios.config.factory.file.RegStoreFileParser;
+import org.omnifaces.elios.config.module.configprovider.GFServerConfigProvider;
 import org.omnifaces.elios.services.WebServicesDelegate;
-import org.omnifaces.elios.services.config.GFServerConfigProvider;
 
 /**
  * This class implements methods in the abstract class AuthConfigFactory.
