@@ -18,8 +18,8 @@ package org.omnifaces.eleos.config.helper;
 
 import java.util.Map;
 
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.AuthStatus;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.AuthStatus;
 
 /**
  * The modules manager

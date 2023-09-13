@@ -16,7 +16,7 @@
 
 package org.omnifaces.eleos.config.factory;
 
-import javax.security.auth.message.config.AuthConfigFactory.RegistrationContext;
+import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
 import org.omnifaces.eleos.config.factory.file.AuthConfigProviderEntry;
 import org.omnifaces.eleos.config.factory.file.RegStoreFileParser;

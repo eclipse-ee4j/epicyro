@@ -31,11 +31,8 @@ public class LogManager {
      * RESOURCE_BUNDLE the name of the logging resource bundles.
      */
     public static final String RESOURCE_BUNDLE = "LogStrings";
-
     public static final String JASPIC_LOGGER = "enterprise.system.jaspic.security";
-
     public static final String RES_BUNDLE = PACKAGE_ROOT + JASPIC_LOGGER + "." + RESOURCE_BUNDLE;
-
 
     private String loggerName;
 

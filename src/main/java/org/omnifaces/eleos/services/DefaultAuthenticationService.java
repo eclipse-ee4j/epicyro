@@ -23,28 +23,61 @@ import java.util.Map;
 import javax.security.auth.callback.CallbackHandler;
 
 import org.omnifaces.eleos.config.factory.ConfigParser;
+import org.omnifaces.eleos.config.factory.DefaultConfigParser;
 import org.omnifaces.eleos.config.helper.AuthMessagePolicy;
-import org.omnifaces.eleos.config.helper.ModuleConfigurationManager;
 import org.omnifaces.eleos.config.module.configprovider.GFServerConfigProvider;
+import org.omnifaces.eleos.config.servlet.sam.BasicServerAuthModule;
+import org.omnifaces.eleos.config.servlet.sam.FormServerAuthModule;
 
 public class DefaultAuthenticationService extends BaseAuthenticationService {
 
-    public DefaultAuthenticationService(String appContext, Map<String, Object> map, ConfigParser parser, CallbackHandler callbackHandler) {
+    public DefaultAuthenticationService(String appContextId, Map<String, Object> properties, ConfigParser parser, CallbackHandler callbackHandler) {
+        ConfigParser configParser = parser;
 
-        init(HTTPSERVLET, appContext, map, callbackHandler, null);
-        
-        ModuleConfigurationManager.init(parser, factory, new GFServerConfigProvider(factory));
+        if (properties.containsKey("authMethod")) {
+            if ("basic".equalsIgnoreCase((String) properties.get("authMethod"))) {
+
+                // Defines the modules that we have available. Here it's only a single fixed module.
+                DefaultConfigParser newParser = new DefaultConfigParser();
+                newParser.withAuthModuleClass(BasicServerAuthModule.class)
+                         .getOptions()
+                         .put("realmName", properties.get("realmName"));
+
+                // Indicates the module we want to use
+                properties.put("authModuleId", BasicServerAuthModule.class.getSimpleName());
+
+                configParser = newParser;
+            } else if ("form".equalsIgnoreCase((String) properties.get("authMethod"))) {
+
+                // Defines the modules that we have available. Here it's only a single fixed module.
+                DefaultConfigParser newParser = new DefaultConfigParser();
+                Map<String, Object> options = newParser.withAuthModuleClass(FormServerAuthModule.class)
+                         .getOptions();
+
+                options.put("formLoginPage", properties.get("formLoginPage"));
+                options.put("formErrorPage", properties.get("formErrorPage"));
+
+
+                // Indicates the module we want to use
+                properties.put("authModuleId", FormServerAuthModule.class.getSimpleName());
+
+                configParser = newParser;
+            }
+        }
+
+        init(HTTPSERVLET, appContextId, properties, callbackHandler, null);
 
         if (!hasExactMatchAuthProvider()) {
             setRegistrationId(
-                factory.registerConfigProvider(
-                    new GFServerConfigProvider(factory), 
-                    HTTPSERVLET, appContext,
-                    "Eleos provider: " + HTTPSERVLET + ":" + appContext));
+                authConfigFactory.registerConfigProvider(
+                    new GFServerConfigProvider(configParser, authConfigFactory),
+                    HTTPSERVLET, appContextId,
+                    "Eleos provider: " + HTTPSERVLET + ":" + appContextId));
         }
 
     }
 
+    @Override
     public CallbackHandler getCallbackHandler() {
         return AuthMessagePolicy.getDefaultCallbackHandler();
     }

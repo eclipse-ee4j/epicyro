@@ -18,7 +18,7 @@ package org.omnifaces.eleos.data;
 
 import java.util.Map;
 
-import javax.security.auth.message.MessagePolicy;
+import jakarta.security.auth.message.MessagePolicy;
 
 /**
  * This structure holds the configuration for an authentication module (SAM or CAM).

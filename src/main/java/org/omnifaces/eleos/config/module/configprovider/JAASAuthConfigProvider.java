@@ -19,9 +19,9 @@ package org.omnifaces.eleos.config.module.configprovider;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.config.AuthConfigFactory;
-import javax.security.auth.message.config.AuthConfigFactory.RegistrationContext;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.config.AuthConfigFactory;
+import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
 import org.omnifaces.eleos.config.helper.JAASModulesManager;
 import org.omnifaces.eleos.config.helper.ModulesManager;

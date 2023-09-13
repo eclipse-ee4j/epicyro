@@ -18,7 +18,6 @@ package org.omnifaces.eleos.config.helper;
 
 import static java.security.AccessController.doPrivileged;
 import static java.util.logging.Level.WARNING;
-import static org.omnifaces.eleos.config.helper.ObjectUtils.createObject;
 
 import java.io.IOException;
 import java.security.AccessController;
@@ -27,9 +26,9 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.logging.Logger;
 
-import javax.security.auth.message.AuthException;
-
 import org.omnifaces.eleos.config.factory.ConfigParser;
+
+import jakarta.security.auth.message.AuthException;
 
 public class ObjectUtils {
 

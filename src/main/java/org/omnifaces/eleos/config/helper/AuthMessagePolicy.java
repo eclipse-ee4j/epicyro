@@ -17,9 +17,9 @@
 package org.omnifaces.eleos.config.helper;
 
 
-import static javax.security.auth.message.MessagePolicy.ProtectionPolicy.AUTHENTICATE_CONTENT;
-import static javax.security.auth.message.MessagePolicy.ProtectionPolicy.AUTHENTICATE_RECIPIENT;
-import static javax.security.auth.message.MessagePolicy.ProtectionPolicy.AUTHENTICATE_SENDER;
+import static jakarta.security.auth.message.MessagePolicy.ProtectionPolicy.AUTHENTICATE_CONTENT;
+import static jakarta.security.auth.message.MessagePolicy.ProtectionPolicy.AUTHENTICATE_RECIPIENT;
+import static jakarta.security.auth.message.MessagePolicy.ProtectionPolicy.AUTHENTICATE_SENDER;
 
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
@@ -28,8 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.message.MessagePolicy;
-import javax.security.auth.message.MessagePolicy.TargetPolicy;
+import jakarta.security.auth.message.MessagePolicy;
+import jakarta.security.auth.message.MessagePolicy.TargetPolicy;
 
 
 public class AuthMessagePolicy {

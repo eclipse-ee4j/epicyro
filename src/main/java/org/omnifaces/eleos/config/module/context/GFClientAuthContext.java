@@ -17,11 +17,11 @@
 package org.omnifaces.eleos.config.module.context;
 
 import javax.security.auth.Subject;
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.AuthStatus;
-import javax.security.auth.message.MessageInfo;
-import javax.security.auth.message.config.ClientAuthContext;
-import javax.security.auth.message.module.ClientAuthModule;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.AuthStatus;
+import jakarta.security.auth.message.MessageInfo;
+import jakarta.security.auth.message.config.ClientAuthContext;
+import jakarta.security.auth.message.module.ClientAuthModule;
 
 public class GFClientAuthContext implements ClientAuthContext {
 

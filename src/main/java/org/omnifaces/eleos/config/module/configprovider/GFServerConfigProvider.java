@@ -20,16 +20,18 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.security.auth.callback.CallbackHandler;
-//jsr 196 interface types
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.config.AuthConfigFactory;
-import javax.security.auth.message.config.AuthConfigProvider;
-import javax.security.auth.message.config.ClientAuthConfig;
-import javax.security.auth.message.config.ServerAuthConfig;
 
+import org.omnifaces.eleos.config.factory.ConfigParser;
 import org.omnifaces.eleos.config.helper.ModuleConfigurationManager;
 import org.omnifaces.eleos.config.module.config.GFClientAuthConfig;
 import org.omnifaces.eleos.config.module.config.GFServerAuthConfig;
+
+//jsr 196 interface types
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.config.AuthConfigFactory;
+import jakarta.security.auth.message.config.AuthConfigProvider;
+import jakarta.security.auth.message.config.ClientAuthConfig;
+import jakarta.security.auth.message.config.ServerAuthConfig;
 
 /**
  * This class implements the interface AuthConfigProvider.
@@ -41,29 +43,36 @@ public class GFServerConfigProvider implements AuthConfigProvider {
 
     public static final Logger logger = Logger.getLogger(GFServerConfigProvider.class.getName());
 
-    protected AuthConfigFactory factory;
-    
-    public GFServerConfigProvider(AuthConfigFactory factory) {
-        this.factory = factory;
+    protected ModuleConfigurationManager moduleConfigurationManager;
+    protected AuthConfigFactory authConfigFactory;
+
+    public GFServerConfigProvider(ConfigParser configParser, AuthConfigFactory authConfigFactory) {
+        this.authConfigFactory = authConfigFactory;
+        this.moduleConfigurationManager = new ModuleConfigurationManager(configParser, authConfigFactory, this);
+    }
+
+    public GFServerConfigProvider(ModuleConfigurationManager moduleConfigurationManager, AuthConfigFactory authConfigFactory) {
+        this.moduleConfigurationManager = moduleConfigurationManager;
+        this.authConfigFactory = authConfigFactory;
     }
 
     public GFServerConfigProvider(Map properties, AuthConfigFactory factory) {
-        this.factory = factory;
+        this.authConfigFactory = factory;
     }
 
     @Override
-    public ClientAuthConfig getClientAuthConfig(String layer, String appContext, CallbackHandler handler) throws AuthException {
-        return new GFClientAuthConfig(this, layer, appContext, handler);
+    public ClientAuthConfig getClientAuthConfig(String messageLayer, String appContextId, CallbackHandler handler) throws AuthException {
+        return new GFClientAuthConfig(moduleConfigurationManager, this, messageLayer, appContextId, handler);
     }
 
     @Override
-    public ServerAuthConfig getServerAuthConfig(String layer, String appContext, CallbackHandler handler) throws AuthException {
-        return new GFServerAuthConfig(this, layer, appContext, handler);
+    public ServerAuthConfig getServerAuthConfig(String messageLayer, String appContextId, CallbackHandler handler) throws AuthException {
+        return new GFServerAuthConfig(moduleConfigurationManager, this, messageLayer, appContextId, handler);
     }
 
     @Override
     public void refresh() {
-        ModuleConfigurationManager.loadParser(this, factory, null);
+        moduleConfigurationManager.loadParser(this, authConfigFactory, null);
     }
 
 }

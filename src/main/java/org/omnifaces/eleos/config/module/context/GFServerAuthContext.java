@@ -17,35 +17,35 @@
 package org.omnifaces.eleos.config.module.context;
 
 import javax.security.auth.Subject;
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.AuthStatus;
-import javax.security.auth.message.MessageInfo;
-import javax.security.auth.message.config.ServerAuthContext;
-import javax.security.auth.message.module.ServerAuthModule;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.AuthStatus;
+import jakarta.security.auth.message.MessageInfo;
+import jakarta.security.auth.message.config.ServerAuthContext;
+import jakarta.security.auth.message.module.ServerAuthModule;
 
 public class GFServerAuthContext implements ServerAuthContext {
 
-    private final ServerAuthModule module;
+    private final ServerAuthModule serverAuthModule;
 
-    public GFServerAuthContext(ServerAuthModule module) {
-        if (module == null) {
-            throw new IllegalStateException("Module should not be null");
+    public GFServerAuthContext(ServerAuthModule serverAuthModule) {
+        if (serverAuthModule == null) {
+            throw new IllegalStateException("ServerAuthModule should not be null");
         }
-        this.module = module;
+        this.serverAuthModule = serverAuthModule;
     }
 
     @Override
     public AuthStatus validateRequest(MessageInfo messageInfo, Subject clientSubject, Subject serviceSubject) throws AuthException {
-        return module.validateRequest(messageInfo, clientSubject, serviceSubject);
+        return serverAuthModule.validateRequest(messageInfo, clientSubject, serviceSubject);
     }
 
     @Override
     public AuthStatus secureResponse(MessageInfo messageInfo, Subject serviceSubject) throws AuthException {
-        return module.secureResponse(messageInfo, serviceSubject);
+        return serverAuthModule.secureResponse(messageInfo, serviceSubject);
     }
 
     @Override
     public void cleanSubject(MessageInfo messageInfo, Subject subject) throws AuthException {
-        module.cleanSubject(messageInfo, subject);
+        serverAuthModule.cleanSubject(messageInfo, subject);
     }
 }

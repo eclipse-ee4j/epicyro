@@ -34,10 +34,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.config.AuthConfigFactory;
-import javax.security.auth.message.config.AuthConfigProvider;
-import javax.security.auth.message.config.RegistrationListener;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.config.AuthConfigFactory;
+import jakarta.security.auth.message.config.AuthConfigProvider;
+import jakarta.security.auth.message.config.RegistrationListener;
 
 import org.omnifaces.eleos.config.factory.file.AuthConfigProviderEntry;
 import org.omnifaces.eleos.config.factory.file.RegStoreFileParser;

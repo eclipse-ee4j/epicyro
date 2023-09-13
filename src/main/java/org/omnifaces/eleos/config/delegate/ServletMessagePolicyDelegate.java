@@ -16,21 +16,21 @@
 
 package org.omnifaces.eleos.config.delegate;
 
-import static javax.security.auth.message.MessagePolicy.ProtectionPolicy.AUTHENTICATE_SENDER;
+import static jakarta.security.auth.message.MessagePolicy.ProtectionPolicy.AUTHENTICATE_SENDER;
 
 import java.util.Map;
 
-import javax.security.auth.message.MessageInfo;
-import javax.security.auth.message.MessagePolicy;
-import javax.security.auth.message.MessagePolicy.TargetPolicy;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.security.auth.message.MessageInfo;
+import jakarta.security.auth.message.MessagePolicy;
+import jakarta.security.auth.message.MessagePolicy.TargetPolicy;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class ServletMessagePolicyDelegate implements MessagePolicyDelegate {
 
     private static final String MANDATORY_AUTH_CONTEXT_ID = "mandatory";
     private static final String OPTIONAL_AUTH_CONTEXT_ID = "optional";
-    private static final String MANDATORY_KEY = "javax.security.auth.message.MessagePolicy.isMandatory";
+    private static final String MANDATORY_KEY = "jakarta.security.auth.message.MessagePolicy.isMandatory";
 
     private static final Class<?>[] MESSAGE_TYPES = new Class[] { HttpServletRequest.class, HttpServletResponse.class };
 

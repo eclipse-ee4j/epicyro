@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 OmniFaces. All rights reserved.
+ * Copyright (c) 2019, 2021 OmniFaces. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -21,15 +21,29 @@ import static org.omnifaces.eleos.config.helper.HttpServletConstants.HTTPSERVLET
 import java.util.HashMap;
 import java.util.Map;
 
+import org.omnifaces.eleos.data.AuthModuleConfig;
 import org.omnifaces.eleos.data.AuthModulesLayerConfig;
 
 public class DefaultConfigParser implements ConfigParser {
     
     private final Map<String, AuthModulesLayerConfig> authModuleLayers = new HashMap<>();
     
+    public DefaultConfigParser() {}
+    
     public DefaultConfigParser(Class<?> authModuleClass) {
-        authModuleLayers.put(HTTPSERVLET, new AuthModulesLayerConfig(authModuleClass));
+        withAuthModuleClass(authModuleClass);
     }
+    
+    public AuthModuleConfig withAuthModuleClass(Class<?> authModuleClass) {
+        AuthModulesLayerConfig authModulesLayerConfig = new AuthModulesLayerConfig(authModuleClass);
+        
+        authModuleLayers.put(HTTPSERVLET, authModulesLayerConfig);
+        
+        return authModulesLayerConfig
+                .getAuthModules()
+                .get(authModuleClass.getSimpleName());
+    }
+    
     
     @Override
     public Map<String, AuthModulesLayerConfig> getAuthModuleLayers() {

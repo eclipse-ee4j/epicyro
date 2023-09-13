@@ -38,8 +38,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.AuthStatus;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.AuthStatus;
 
 import org.omnifaces.eleos.config.jaas.ExtendedConfigFile;
 
@@ -54,18 +54,14 @@ public class JAASModulesManager extends ModulesManager {
     private static final Object[] ARGS = {};
 
     private LogManager logManager;
-
     private ExtendedConfigFile jaasConfig;
-
     private final String appContext;
 
     // may be more than one delegate for a given jaas config file
     private ReentrantReadWriteLock instanceReadWriteLock = new ReentrantReadWriteLock();
-
     private Lock instanceWriteLock = instanceReadWriteLock.writeLock();
 
     private AppConfigurationEntry[] appConfigurationEntry;
-
     private Constructor<?>[] loginModuleConstructors;
 
     public JAASModulesManager(LogManager logManager, boolean returnNullContexts, ExtendedConfigFile jaasConfig, Map<String, ?> properties, String appContext) throws AuthException {
@@ -98,8 +94,7 @@ public class JAASModulesManager extends ModulesManager {
     }
 
     @Override
-    public
-    final void refresh() {
+    public final void refresh() {
         jaasConfig.refresh();
         initialize();
     }

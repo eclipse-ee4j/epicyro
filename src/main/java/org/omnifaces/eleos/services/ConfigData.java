@@ -16,10 +16,10 @@
 
 package org.omnifaces.eleos.services;
 
-import javax.security.auth.message.config.AuthConfig;
-import javax.security.auth.message.config.AuthConfigProvider;
-import javax.security.auth.message.config.ClientAuthConfig;
-import javax.security.auth.message.config.ServerAuthConfig;
+import jakarta.security.auth.message.config.AuthConfig;
+import jakarta.security.auth.message.config.AuthConfigProvider;
+import jakarta.security.auth.message.config.ClientAuthConfig;
+import jakarta.security.auth.message.config.ServerAuthConfig;
 
 class ConfigData {
 
@@ -33,10 +33,7 @@ class ConfigData {
     ConfigData(AuthConfigProvider authConfigProvider, AuthConfig authConfig) {
         provider = authConfigProvider;
 
-        if (authConfig == null) {
-            serverConfig = null;
-            clientConfig = null;
-        } else if (authConfig instanceof ServerAuthConfig) {
+        if (authConfig instanceof ServerAuthConfig) {
             serverConfig = authConfig;
         } else if (authConfig instanceof ClientAuthConfig) {
             clientConfig = authConfig;

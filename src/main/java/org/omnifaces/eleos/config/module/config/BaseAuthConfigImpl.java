@@ -27,9 +27,9 @@ import java.util.logging.Logger;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.MessageInfo;
-import javax.security.auth.message.config.AuthConfig;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.MessageInfo;
+import jakarta.security.auth.message.config.AuthConfig;
 
 import org.omnifaces.eleos.config.delegate.MessagePolicyDelegate;
 import org.omnifaces.eleos.config.helper.EpochCarrier;
@@ -92,7 +92,7 @@ public abstract class BaseAuthConfigImpl implements AuthConfig {
     private void initialize() throws AuthException {
         instanceWriteLock.lock();
         try {
-            this.epoch = providerEpoch.getEpoch();
+            epoch = providerEpoch.getEpoch();
             initializeContextMap();
         } finally {
             instanceWriteLock.unlock();
@@ -139,8 +139,7 @@ public abstract class BaseAuthConfigImpl implements AuthConfig {
     }
 
     @SuppressWarnings("unchecked")
-    protected final <M> M getContext(Map<String, Map<Integer, M>> contextMap, String authContextID, Subject subject,
-            Map<String, ?> properties)
+    protected final <M> M getContext(Map<String, Map<Integer, M>> contextMap, String authContextID, Subject subject, Map<String, ?> properties)
             throws AuthException {
 
         M context = null;

@@ -20,7 +20,7 @@ package org.omnifaces.eleos.services;
 public interface RegistrationWrapperRemover {
 
     /**
-     * remove the registration of the argument listener
+     * Remove the registration of the argument listener
      *
      * @param listener
      */

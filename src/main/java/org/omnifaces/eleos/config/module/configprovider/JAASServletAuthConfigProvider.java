@@ -18,9 +18,9 @@ package org.omnifaces.eleos.config.module.configprovider;
 
 import java.util.Map;
 
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.config.AuthConfigFactory;
-import javax.security.auth.message.module.ServerAuthModule;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.config.AuthConfigFactory;
+import jakarta.security.auth.message.module.ServerAuthModule;
 
 import org.omnifaces.eleos.config.delegate.MessagePolicyDelegate;
 import org.omnifaces.eleos.config.delegate.ServletMessagePolicyDelegate;

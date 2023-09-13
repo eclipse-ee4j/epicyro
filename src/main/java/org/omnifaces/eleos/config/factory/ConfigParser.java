@@ -40,9 +40,13 @@ public interface ConfigParser {
      * Initialize the parser.
      * Passing null as argument means the parser is to find
      * configuration object as necessary.
+     *
+     * @param config the config
+     * @throws IOException when something bad happens
+     *
      */
     default void initialize(Object config) throws IOException {
-        
+
     }
 
     /**
@@ -58,8 +62,8 @@ public interface ConfigParser {
      * <p>The value is a AuthModulesLayerConfig, which contains:
      *
      * <ul>
-     *   <li> default default Client Module Id 
-     *   <li> default default Server Module Id 
+     *   <li> default default Client Module Id
+     *   <li> default default Server Module Id
      *   <li> Map, where
      *		    key	= auth module ID
      *		    value = AuthModuleConfig
@@ -74,12 +78,16 @@ public interface ConfigParser {
      *   <li> default responsePolicy
      *   <li> options
      * </ul>
+     *
+     * @return module configuration
      */
     Map<String, AuthModulesLayerConfig> getAuthModuleLayers();
 
     /**
      * Get the layers for which a default provider should be created when the
      * parser is loaded.
+     *
+     * @return layers for default provider
      */
     default Set<String> getLayersWithDefault() {
         return emptySet();

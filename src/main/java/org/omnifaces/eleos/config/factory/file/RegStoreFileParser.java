@@ -35,7 +35,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.security.auth.message.config.AuthConfigFactory.RegistrationContext;
+import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
 import org.omnifaces.eleos.config.factory.RegistrationContextImpl;
 

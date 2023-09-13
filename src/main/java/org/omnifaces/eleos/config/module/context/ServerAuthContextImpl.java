@@ -19,9 +19,9 @@ package org.omnifaces.eleos.config.module.context;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
-import static javax.security.auth.message.AuthStatus.SEND_FAILURE;
-import static javax.security.auth.message.AuthStatus.SEND_SUCCESS;
-import static javax.security.auth.message.AuthStatus.SUCCESS;
+import static jakarta.security.auth.message.AuthStatus.SEND_FAILURE;
+import static jakarta.security.auth.message.AuthStatus.SEND_SUCCESS;
+import static jakarta.security.auth.message.AuthStatus.SUCCESS;
 
 import java.util.Map;
 import java.util.logging.Level;
@@ -29,12 +29,12 @@ import java.util.logging.Logger;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.AuthStatus;
-import javax.security.auth.message.MessageInfo;
-import javax.security.auth.message.MessagePolicy;
-import javax.security.auth.message.config.ServerAuthContext;
-import javax.security.auth.message.module.ServerAuthModule;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.AuthStatus;
+import jakarta.security.auth.message.MessageInfo;
+import jakarta.security.auth.message.MessagePolicy;
+import jakarta.security.auth.message.config.ServerAuthContext;
+import jakarta.security.auth.message.module.ServerAuthModule;
 
 import org.omnifaces.eleos.config.delegate.MessagePolicyDelegate;
 import org.omnifaces.eleos.config.helper.ModulesManager;
@@ -45,19 +45,12 @@ public class ServerAuthContextImpl implements ServerAuthContext {
     private final static AuthStatus[] secureResponseSuccessValues = { SEND_SUCCESS };
 
     private String loggerName;
-
     private ModulesManager modulesManager;
-
     private MessagePolicyDelegate policyDelegate;
-
     private String appContext;
-
     private CallbackHandler callbackHandler;
-
     private String authContextID;
-
     private Map<String, ?> properties;
-
     private ServerAuthModule[] serverAuthModules;
 
 

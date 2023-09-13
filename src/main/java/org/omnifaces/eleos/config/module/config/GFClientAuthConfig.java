@@ -22,28 +22,30 @@ import java.util.Map;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.config.AuthConfigProvider;
-import javax.security.auth.message.config.ClientAuthConfig;
-import javax.security.auth.message.config.ClientAuthContext;
 
+import org.omnifaces.eleos.config.helper.ModuleConfigurationManager;
 import org.omnifaces.eleos.config.module.context.GFClientAuthContext;
 import org.omnifaces.eleos.data.AuthModuleInstanceHolder;
 
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.config.AuthConfigProvider;
+import jakarta.security.auth.message.config.ClientAuthConfig;
+import jakarta.security.auth.message.config.ClientAuthContext;
+
 public class GFClientAuthConfig extends GFAuthConfig implements ClientAuthConfig {
 
-    public GFClientAuthConfig(AuthConfigProvider provider, String layer, String appContext, CallbackHandler handler) {
-        super(provider, layer, appContext, handler, CLIENT);
+    public GFClientAuthConfig(ModuleConfigurationManager moduleConfigurationManager, AuthConfigProvider authConfigProvider, String messageLayer, String appContext, CallbackHandler handler) {
+        super(moduleConfigurationManager, authConfigProvider, messageLayer, appContext, handler, CLIENT);
     }
 
     @Override
     public ClientAuthContext getAuthContext(String authContextID, Subject clientSubject, @SuppressWarnings("rawtypes") Map properties) throws AuthException {
         @SuppressWarnings("unchecked")
-        AuthModuleInstanceHolder moduleInfo = getAuthModuleInstanceHolder(authContextID, properties);
-        if (moduleInfo == null || moduleInfo.getModule() == null) {
+        AuthModuleInstanceHolder authModuleInstanceHolder = getAuthModuleInstanceHolder(authContextID, properties);
+        if (authModuleInstanceHolder == null || authModuleInstanceHolder.getModule() == null) {
             return null;
         }
-        
-        return new GFClientAuthContext(moduleInfo.getModule());
+
+        return new GFClientAuthContext(authModuleInstanceHolder.getModule());
     }
 }

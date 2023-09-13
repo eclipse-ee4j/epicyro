@@ -22,28 +22,30 @@ import java.util.Map;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.config.AuthConfigProvider;
-import javax.security.auth.message.config.ServerAuthConfig;
-import javax.security.auth.message.config.ServerAuthContext;
 
+import org.omnifaces.eleos.config.helper.ModuleConfigurationManager;
 import org.omnifaces.eleos.config.module.context.GFServerAuthContext;
 import org.omnifaces.eleos.data.AuthModuleInstanceHolder;
 
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.config.AuthConfigProvider;
+import jakarta.security.auth.message.config.ServerAuthConfig;
+import jakarta.security.auth.message.config.ServerAuthContext;
+
 public class GFServerAuthConfig extends GFAuthConfig implements ServerAuthConfig {
 
-    public GFServerAuthConfig(AuthConfigProvider provider, String layer, String appContext, CallbackHandler handler) {
-        super(provider, layer, appContext, handler, SERVER);
+    public GFServerAuthConfig(ModuleConfigurationManager moduleConfigurationManager, AuthConfigProvider provider, String layer, String appContext, CallbackHandler handler) {
+        super(moduleConfigurationManager, provider, layer, appContext, handler, SERVER);
     }
 
     @Override
-    public ServerAuthContext getAuthContext(String authContextID, Subject serviceSubject, @SuppressWarnings("rawtypes") Map properties) throws AuthException {
+    public ServerAuthContext getAuthContext(String authContextId, Subject serviceSubject, @SuppressWarnings("rawtypes") Map properties) throws AuthException {
         @SuppressWarnings("unchecked")
-        AuthModuleInstanceHolder moduleInfo = getAuthModuleInstanceHolder(authContextID, properties);
-        if (moduleInfo == null || moduleInfo.getModule() == null) {
+        AuthModuleInstanceHolder authModuleInstanceHolder = getAuthModuleInstanceHolder(authContextId, properties);
+        if (authModuleInstanceHolder == null || authModuleInstanceHolder.getModule() == null) {
             return null;
         }
 
-        return new GFServerAuthContext(moduleInfo.getModule());
+        return new GFServerAuthContext(authModuleInstanceHolder.getModule());
     }
 }

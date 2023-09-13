@@ -30,12 +30,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 
 import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.MessagePolicy;
-import javax.security.auth.message.config.AuthConfigFactory;
-import javax.security.auth.message.config.AuthConfigProvider;
-import javax.security.auth.message.module.ClientAuthModule;
-import javax.security.auth.message.module.ServerAuthModule;
 
 import org.omnifaces.eleos.config.factory.ConfigParser;
 import org.omnifaces.eleos.data.AuthModuleBaseConfig;
@@ -43,29 +37,40 @@ import org.omnifaces.eleos.data.AuthModuleConfig;
 import org.omnifaces.eleos.data.AuthModuleInstanceHolder;
 import org.omnifaces.eleos.data.AuthModulesLayerConfig;
 
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.MessagePolicy;
+import jakarta.security.auth.message.config.AuthConfigFactory;
+import jakarta.security.auth.message.config.AuthConfigProvider;
+import jakarta.security.auth.message.module.ClientAuthModule;
+import jakarta.security.auth.message.module.ServerAuthModule;
+
 public class ModuleConfigurationManager {
-    
+
     public static final Logger logger = Logger.getLogger(ModuleConfigurationManager.class.getName());
 
-    private static final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    private static final OperationLock operationLock = new OperationLock(readWriteLock);
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final OperationLock operationLock = new OperationLock(readWriteLock);
 
-    private static ConfigParser parser;
-    private static AuthConfigFactory factory;
-    private static AuthConfigProvider defaultProvider; // instance set as default for all layers
-    
+    private ConfigParser parser;
+    private AuthConfigFactory factory;
+    private AuthConfigProvider defaultProvider; // instance set as default for all layers
+
     // Map that keeps track of all default config providers being registered for each layer.
     // This is used to signal the removal of those providers when the manager is re-initialized and doesn't
     // support a previously available layer anymore.
     //
     // (In practice, does this *ever* happen? We normally only have the HttpServlet layer)
-    private static final Map<String, String> layerToDefaultProviderRegistrationMap = new HashMap<String, String>();
-    
-    public static void init(String initParserClassName, AuthConfigFactory initFactory, AuthConfigProvider initProvider) {
+    private final Map<String, String> layerToDefaultProviderRegistrationMap = new HashMap<String, String>();
+
+    public ModuleConfigurationManager(ConfigParser initParser, AuthConfigFactory initFactory, AuthConfigProvider initProvider) {
+        init(initParser, initFactory, initProvider);
+    }
+
+    public void init(String initParserClassName, AuthConfigFactory initFactory, AuthConfigProvider initProvider) {
         init(ObjectUtils.<ConfigParser>createObject(initParserClassName), initFactory, initProvider);
     }
-    
-    public static void init(ConfigParser initParser, AuthConfigFactory initFactory, AuthConfigProvider initProvider) {
+
+    public void init(ConfigParser initParser, AuthConfigFactory initFactory, AuthConfigProvider initProvider) {
         operationLock.doLocked(() -> parser == null, () -> {
             parser = initParser;
             loadParser(initProvider, initFactory, null);
@@ -78,9 +83,9 @@ public class ModuleConfigurationManager {
         if (initProvider != null) {
             operationLock.doLocked(() -> defaultProvider == null, () -> defaultProvider = initProvider);
         }
-        
+
     }
-    
+
     /**
      * this method is intended to be called by the admin configuration system when the corresponding config object has
      * changed.
@@ -88,7 +93,7 @@ public class ModuleConfigurationManager {
      * @param config a config object of type understood by the parserInstance. NOTE: there appears to be a thread saftey problem,
      * and this method will fail if a defaultProvider has not been established prior to its call.
      */
-    public static void loadConfigContext(Object config) {
+    public void loadConfigContext(Object config) {
         if (defaultProvider == null) {
             logger.severe("unableToLoad.noGlobalProvider");
             return;
@@ -105,13 +110,13 @@ public class ModuleConfigurationManager {
         loadParser(defaultProvider, factory, config);
     }
 
-    public static void loadParser(AuthConfigProvider defaultConfigProvider, AuthConfigFactory factory, Object config) {
+    public void loadParser(AuthConfigProvider defaultConfigProvider, AuthConfigFactory factory, Object config) {
         operationLock.doWriteLocked(() -> {
             try {
                 parser.initialize(config);
 
                 // Set the default provider for all layers supported by this parserInstance.
-                
+
                 if (factory != null && defaultConfigProvider != null) {
                     updateDefaultProviderForSupportedLayers(defaultConfigProvider, factory);
                 }
@@ -124,133 +129,133 @@ public class ModuleConfigurationManager {
     /**
      * Instantiate and initialize module class
      */
-    public static AuthModuleInstanceHolder createAuthModuleInstance(AuthModuleBaseConfig authModuleConfig, CallbackHandler handler, String moduleType, Map<String, Object> properties) throws AuthException {
+    public AuthModuleInstanceHolder createAuthModuleInstance(AuthModuleBaseConfig authModuleConfig, CallbackHandler handler, String moduleType, Map<String, Object> properties) throws AuthException {
         try {
             // Instantiate module using no-arg constructor
             Object newModule = newAuthModule(authModuleConfig.getModuleClassName());
-    
+
             // Merge the passed in options with the configured options
             Map<String, Object> moduleOptions = mergeModuleOptions(properties, authModuleConfig.getOptions());
-           
+
             // Initialize Module
             if (SERVER.equals(moduleType)) {
                 ((ServerAuthModule) newModule).initialize(authModuleConfig.getRequestPolicy(), authModuleConfig.getResponsePolicy(), handler, moduleOptions);
             } else { // CLIENT
                 ((ClientAuthModule) newModule).initialize(authModuleConfig.getRequestPolicy(), authModuleConfig.getResponsePolicy(), handler, moduleOptions);
             }
-    
+
             return new AuthModuleInstanceHolder(newModule, moduleOptions);
         } catch (Exception e) {
             if (e instanceof AuthException) {
                 throw (AuthException) e;
             }
-    
+
             throw (AuthException) new AuthException().initCause(e);
         }
     }
 
-    public static AuthModuleBaseConfig getAuthModuleConfig(String layer, String authModuleId, MessagePolicy requestPolicyIn, MessagePolicy responsePolicyIn, String authModuleType) {
-    
+    public AuthModuleBaseConfig getAuthModuleConfig(String layer, String authModuleId, MessagePolicy requestPolicyIn, MessagePolicy responsePolicyIn, String authModuleType) {
+
         // get the parsed module config and DD information
-    
+
         Map<String, AuthModulesLayerConfig> authModuleLayers = operationLock.doReadLocked(() -> parser.getAuthModuleLayers());
         if (authModuleLayers == null) {
             return null;
         }
-    
+
         // Get the module config info for this layer
-    
+
         AuthModulesLayerConfig authModulesLayerConfig = authModuleLayers.get(layer);
         if (authModulesLayerConfig == null || authModulesLayerConfig.getAuthModules() == null) {
             logger.log(FINE, () -> "module config has no auth modules configured for layer [" + layer + "]");
             return null;
         }
-    
+
         // look up the DD's provider ID in the module config
-    
+
         AuthModuleConfig authModuleConfig = null;
         if (authModuleId == null || (authModuleConfig = authModulesLayerConfig.getAuthModules().get(authModuleId)) == null) {
-    
+
             // either the DD did not specify an auth module ID,
             // or the DD-specified auth module ID was not found/ in the module config.
             //
             // In either case, look for a default ID in the module config
-    
-            logger.log(FINE, () -> 
-                "DD did not specify auth module Id, or DD-specified Id for layer [" + layer + "] not found in config -- " + 
+
+            logger.log(FINE, () ->
+                "DD did not specify auth module Id, or DD-specified Id for layer [" + layer + "] not found in config -- " +
                 "attempting to look for default auth moduke Id");
-    
+
             String defaultModuleID = getDefaultModuleId(authModuleType, authModulesLayerConfig);
-    
+
             authModuleConfig = authModulesLayerConfig.getAuthModules().get(defaultModuleID);
             if (authModuleConfig == null) {
-    
+
                 // Did not find a default module ID
-    
+
                 logger.log(FINE, () -> "No default config Id for layer [" + layer + "]");
-    
+
                 return null;
             }
         }
-    
+
         // We found the DD provider ID in the module config or we found a default module config
-    
+
         // Check module-type
         if (authModuleConfig.getType().indexOf(authModuleType) < 0) {
             if (logger.isLoggable(FINE)) {
                 logger.fine("Request type [" + authModuleType + "] does not match config type [" + authModuleConfig.getType() + "]");
             }
-    
+
             return null;
         }
-    
+
         // Check whether a policy is set
         MessagePolicy requestPolicy = getRequestPolicy(requestPolicyIn, responsePolicyIn, authModuleConfig);
         MessagePolicy responsePolicy = getResponsePolicy(requestPolicyIn, responsePolicyIn, authModuleConfig);
-    
+
         // Optimization: if policy was not set, return null
         if (requestPolicy == null && responsePolicy == null) {
             logger.fine("no policy applies");
             return null;
         }
-    
+
         // Return the configured modules with the correct policies
-    
+
         AuthModuleBaseConfig newAuthModuleConfig = new AuthModuleBaseConfig(
-                authModuleConfig.getModuleClassName(), 
-                requestPolicy, 
-                responsePolicy, 
+                authModuleConfig.getModuleClassName(),
+                requestPolicy,
+                responsePolicy,
                 authModuleConfig.getOptions());
-    
+
         logger.log(FINE, () ->
             "getEntry for: " + layer + " -- " + authModuleId +
             "\n    module class: " + newAuthModuleConfig.getModuleClassName() +
             "\n    options: " + newAuthModuleConfig.getOptions() +
             "\n    request policy: " + newAuthModuleConfig.getRequestPolicy() +
             "\n    response policy: " + newAuthModuleConfig.getResponsePolicy());
-    
+
         return newAuthModuleConfig;
     }
-    
-    private static String getDefaultModuleId(String authModuleType, AuthModulesLayerConfig authModulesLayerConfig) {
+
+    private String getDefaultModuleId(String authModuleType, AuthModulesLayerConfig authModulesLayerConfig) {
         if (CLIENT.equals(authModuleType)) {
             return authModulesLayerConfig.getDefaultClientModuleId();
         }
-            
+
         return authModulesLayerConfig.getDefaultServerModuleId();
     }
-    
-    private static MessagePolicy getRequestPolicy(MessagePolicy requestPolicy, MessagePolicy responsePolicy, AuthModuleConfig authModuleConfig) {
+
+    private MessagePolicy getRequestPolicy(MessagePolicy requestPolicy, MessagePolicy responsePolicy, AuthModuleConfig authModuleConfig) {
         return requestPolicy != null || responsePolicy != null ? requestPolicy : authModuleConfig.getRequestPolicy(); // default;
-        
+
     }
-    
-    private static MessagePolicy getResponsePolicy(MessagePolicy requestPolicy, MessagePolicy responsePolicy, AuthModuleConfig authModuleConfig) {
+
+    private MessagePolicy getResponsePolicy(MessagePolicy requestPolicy, MessagePolicy responsePolicy, AuthModuleConfig authModuleConfig) {
         return requestPolicy != null || responsePolicy != null ? responsePolicy : authModuleConfig.getResponsePolicy(); // default;
-        
+
     }
-    
-    private static Map<String, Object> mergeModuleOptions(Map<String, Object> moduleOptions, Map<String, Object> configuredModuleOptions) {
+
+    private Map<String, Object> mergeModuleOptions(Map<String, Object> moduleOptions, Map<String, Object> configuredModuleOptions) {
 
         Map<String, Object> mergedModuleOptions = moduleOptions;
 
@@ -265,13 +270,13 @@ public class ModuleConfigurationManager {
 
         return mergedModuleOptions;
     }
-    
-    private static void updateDefaultProviderForSupportedLayers(AuthConfigProvider defaultConfigProvider, AuthConfigFactory factory) {
-        
+
+    private void updateDefaultProviderForSupportedLayers(AuthConfigProvider defaultConfigProvider, AuthConfigFactory factory) {
+
         Set<String> layers = parser.getLayersWithDefault();
 
         // Remove existing layers that are not in the new layers.
-        
+
         for (String layer : layerToDefaultProviderRegistrationMap.keySet()) {
             if (!layers.contains(layer)) {
                 factory.removeRegistration(layerToDefaultProviderRegistrationMap.remove(layer));
@@ -280,11 +285,11 @@ public class ModuleConfigurationManager {
 
         // For all new layers for which we don't have registration yet, register the given
         // default config provider for the default (null) context.
-        
+
         for (String layer : layers) {
             if (!layerToDefaultProviderRegistrationMap.containsKey(layer)) {
                 layerToDefaultProviderRegistrationMap.put(
-                    layer, 
+                    layer,
                     factory.registerConfigProvider(
                         defaultConfigProvider, layer, null, "GFServerConfigProvider: self registration"));
             }

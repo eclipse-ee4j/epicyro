@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.security.auth.message.config.AuthConfigFactory.RegistrationContext;
+import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
 import org.omnifaces.eleos.config.factory.RegistrationContextImpl;
 

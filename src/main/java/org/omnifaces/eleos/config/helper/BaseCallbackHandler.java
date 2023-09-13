@@ -29,13 +29,16 @@ import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
-import javax.security.auth.message.callback.CallerPrincipalCallback;
-import javax.security.auth.message.callback.CertStoreCallback;
-import javax.security.auth.message.callback.GroupPrincipalCallback;
-import javax.security.auth.message.callback.PasswordValidationCallback;
-import javax.security.auth.message.callback.PrivateKeyCallback;
-import javax.security.auth.message.callback.SecretKeyCallback;
-import javax.security.auth.message.callback.TrustStoreCallback;
+
+import org.omnifaces.eleos.services.InMemoryStore;
+
+import jakarta.security.auth.message.callback.CallerPrincipalCallback;
+import jakarta.security.auth.message.callback.CertStoreCallback;
+import jakarta.security.auth.message.callback.GroupPrincipalCallback;
+import jakarta.security.auth.message.callback.PasswordValidationCallback;
+import jakarta.security.auth.message.callback.PrivateKeyCallback;
+import jakarta.security.auth.message.callback.SecretKeyCallback;
+import jakarta.security.auth.message.callback.TrustStoreCallback;
 
 public abstract class BaseCallbackHandler implements CallbackHandler {
 
@@ -74,27 +77,27 @@ public abstract class BaseCallbackHandler implements CallbackHandler {
             throw new UnsupportedCallbackException(callback);
         }
     }
-    
+
     private void processCallerPrincipal(CallerPrincipalCallback callerPrincipalCallback) {
         Subject subject = callerPrincipalCallback.getSubject();
         Principal principal = callerPrincipalCallback.getPrincipal();
-        
+
         if (principal == null) {
             principal = new CallerPrincipal(callerPrincipalCallback.getName());
         }
-        
+
         Caller.toSubject(subject, new Caller(principal));
     }
-    
+
     private void processGroupPrincipal(GroupPrincipalCallback groupCallback) {
         Subject subject = groupCallback.getSubject();
         String[] groups = groupCallback.getGroups();
-        
+
         Caller caller = Caller.fromSubject(subject);
 
         if (groups != null && groups.length > 0) {
             if (caller == null) {
-                Caller.toSubject(subject, new Caller(groups)); 
+                Caller.toSubject(subject, new Caller(groups));
             } else {
                 caller.addGroups(groups);
             }
@@ -102,23 +105,41 @@ public abstract class BaseCallbackHandler implements CallbackHandler {
             caller.getGroups().clear();
         }
     }
-    
-    private void processPasswordValidation(PasswordValidationCallback pwdCallback) {
-        
+
+    protected void processPasswordValidation(PasswordValidationCallback pwdCallback) {
+        // Default to a very basic in memory identity store.
+        // Clients may want to override this for more advanced features.
+        Caller caller = InMemoryStore.validate(pwdCallback.getUsername(), getPassword(pwdCallback));
+        if (caller != null) {
+            processCallerPrincipal(new CallerPrincipalCallback(pwdCallback.getSubject(), caller.getCallerPrincipal()));
+            if (!caller.getGroups().isEmpty()) {
+                processGroupPrincipal(new GroupPrincipalCallback(pwdCallback.getSubject(), caller.getGroupsAsArray()));
+            }
+            pwdCallback.setResult(true);
+        }
     }
-    
-    private void processPrivateKey(PrivateKeyCallback privKeyCallback) {
-        
+
+    private String getPassword(PasswordValidationCallback pwdCallback) {
+        char[] password = pwdCallback.getPassword();
+        if (password == null) {
+            return null;
+        }
+
+        return new String(password);
     }
-    
-    private void processCertStore(CertStoreCallback certStoreCallback) {
-        
+
+    protected void processPrivateKey(PrivateKeyCallback privKeyCallback) {
+
     }
-    
-    private void processSecretKey(SecretKeyCallback secretKeyCallback) {
-        
+
+    protected void processCertStore(CertStoreCallback certStoreCallback) {
+
     }
-    
+
+    protected void processSecretKey(SecretKeyCallback secretKeyCallback) {
+
+    }
+
     protected abstract boolean isSupportedCallback(Callback callback);
 
     protected abstract void handleSupportedCallbacks(Callback[] callbacks) throws IOException, UnsupportedCallbackException;

@@ -39,7 +39,7 @@ public class AuthModulesLayerConfig {
     
     public AuthModulesLayerConfig(Class<?> moduleClass) {
        authModules = new HashMap<>();
-       authModules.put(moduleClass.getSimpleName(), new AuthModuleConfig("server", moduleClass.getName(), null, null, null));
+       authModules.put(moduleClass.getSimpleName(), new AuthModuleConfig("server", moduleClass.getName(), null, null, new HashMap<>()));
     }
 
     public AuthModulesLayerConfig(String defaultClientModuleId, String defaultServerModuleId, Map<String, AuthModuleConfig> authModules) {

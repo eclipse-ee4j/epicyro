@@ -19,49 +19,50 @@ package org.omnifaces.eleos.config.module.config;
 import static org.omnifaces.eleos.config.helper.AuthMessagePolicy.getHttpServletPolicies;
 import static org.omnifaces.eleos.config.helper.HttpServletConstants.HTTPSERVLET;
 import static org.omnifaces.eleos.config.helper.HttpServletConstants.IS_MANDATORY;
-import static org.omnifaces.eleos.config.helper.ModuleConfigurationManager.createAuthModuleInstance;
-import static org.omnifaces.eleos.config.helper.ModuleConfigurationManager.getAuthModuleConfig;
-import static org.omnifaces.eleos.config.helper.ModuleConfigurationManager.loadParser;
 
 import java.util.Map;
 
 import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.MessageInfo;
-import javax.security.auth.message.MessagePolicy;
-import javax.security.auth.message.config.AuthConfig;
-import javax.security.auth.message.config.AuthConfigFactory;
-import javax.security.auth.message.config.AuthConfigProvider;
 
 import org.omnifaces.eleos.config.helper.AuthMessagePolicy;
+import org.omnifaces.eleos.config.helper.ModuleConfigurationManager;
 import org.omnifaces.eleos.data.AuthModuleBaseConfig;
 import org.omnifaces.eleos.data.AuthModuleInstanceHolder;
 
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.MessageInfo;
+import jakarta.security.auth.message.MessagePolicy;
+import jakarta.security.auth.message.config.AuthConfig;
+import jakarta.security.auth.message.config.AuthConfigFactory;
+import jakarta.security.auth.message.config.AuthConfigProvider;
+
 public class GFAuthConfig implements AuthConfig {
 
-    protected AuthConfigProvider provider;
-    protected String layer;
+    protected ModuleConfigurationManager moduleConfigurationManager;
+    protected AuthConfigProvider authConfigProvider;
+    protected String messageLayer;
     protected String appContext;
     protected CallbackHandler handler;
-    protected String type;
-    protected String moduleId;
-    
+    protected String authModuleType;
+
+    protected String authModuleId;
     protected boolean init;
     protected boolean onePolicy;
 
-    protected AuthConfigFactory factory;
+    protected AuthConfigFactory authConfigFactory;
 
-    public GFAuthConfig(AuthConfigProvider provider, String layer, String appContext, CallbackHandler handler, String type) {
-        this.provider = provider;
-        this.layer = layer;
+    public GFAuthConfig(ModuleConfigurationManager moduleConfigurationManager, AuthConfigProvider authConfigProvider, String messageLayer, String appContext, CallbackHandler handler, String authModuleType) {
+        this.moduleConfigurationManager = moduleConfigurationManager;
+        this.authConfigProvider = authConfigProvider;
+        this.messageLayer = messageLayer;
         this.appContext = appContext;
         this.handler = handler != null ? handler : AuthMessagePolicy.getDefaultCallbackHandler();
-        this.type = type;
+        this.authModuleType = authModuleType;
     }
 
     @Override
     public String getMessageLayer() {
-        return layer;
+        return messageLayer;
     }
 
     @Override
@@ -86,7 +87,7 @@ public class GFAuthConfig implements AuthConfig {
      */
     @Override
     public String getAuthContextID(MessageInfo messageInfo) {
-        if (HTTPSERVLET.equals(layer)) {
+        if (HTTPSERVLET.equals(messageLayer)) {
             return Boolean.valueOf((String) messageInfo.getMap().get(IS_MANDATORY)).toString();
         }
 
@@ -102,7 +103,7 @@ public class GFAuthConfig implements AuthConfig {
      */
     @Override
     public void refresh() {
-        loadParser(provider, factory, null);
+        moduleConfigurationManager.loadParser(authConfigProvider, authConfigFactory, null);
     }
 
     @Override
@@ -123,18 +124,18 @@ public class GFAuthConfig implements AuthConfig {
         // For now only HTTP supported. Add support for other layers in the future.
         MessagePolicy[] policies = getHttpServletPolicies(authContextID);
 
-        AuthModuleBaseConfig authModuleConfig = getAuthModuleConfig(layer, moduleId, policies[0], policies[1], type);
+        AuthModuleBaseConfig authModuleConfig = moduleConfigurationManager.getAuthModuleConfig(messageLayer, authModuleId, policies[0], policies[1], authModuleType);
         if (authModuleConfig == null) {
             return null;
         }
 
-        return createAuthModuleInstance(authModuleConfig, handler, type, properties);
+        return moduleConfigurationManager.createAuthModuleInstance(authModuleConfig, handler, authModuleType, properties);
     }
 
     private void initialize(Map<String, ?> properties) {
         if (!init) {
-            if (HTTPSERVLET.equals(layer)) {
-                moduleId = (String) properties.get("authModuleId");
+            if (HTTPSERVLET.equals(messageLayer)) {
+                authModuleId = (String) properties.get("authModuleId");
                 onePolicy = true;
             }
 
@@ -142,7 +143,5 @@ public class GFAuthConfig implements AuthConfig {
             init = true;
         }
     }
-
-
 
 }

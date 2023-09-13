@@ -17,8 +17,8 @@
 package org.omnifaces.eleos.config.delegate;
 
 import java.util.Map;
-import javax.security.auth.message.MessageInfo;
-import javax.security.auth.message.MessagePolicy;
+import jakarta.security.auth.message.MessageInfo;
+import jakarta.security.auth.message.MessagePolicy;
 
 /**
  *
