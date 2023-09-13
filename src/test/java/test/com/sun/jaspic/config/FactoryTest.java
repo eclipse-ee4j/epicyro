@@ -23,10 +23,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.ArrayList;
 import java.util.List;
-import com.sun.jaspic.config.factory.EntryInfo;
-import com.sun.jaspic.config.factory.AuthConfigFileFactory;
-import com.sun.jaspic.config.factory.BaseAuthConfigFactory;
-import com.sun.jaspic.config.factory.RegStoreFileParser;
 import java.security.Security;
 import org.junit.After;
 import java.util.HashMap;
@@ -50,6 +46,11 @@ import javax.security.auth.message.config.ServerAuthContext;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.omnifaces.jaspic.config.factory.AuthConfigFileFactory;
+import org.omnifaces.jaspic.config.factory.BaseAuthConfigFactory;
+import org.omnifaces.jaspic.config.factory.EntryInfo;
+import org.omnifaces.jaspic.config.factory.RegStoreFileParser;
+
 import static org.junit.Assert.*;
 
 /**

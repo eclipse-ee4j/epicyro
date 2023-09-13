@@ -16,8 +16,6 @@
 
 package test.com.sun.jaspic.config;
 
-import com.sun.jaspic.config.factory.AuthConfigFileFactory;
-import com.sun.jaspic.config.servlet.JAASServletAuthConfigProvider;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Random;
@@ -31,6 +29,10 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.message.AuthException;
 import javax.security.auth.message.config.AuthConfigFactory;
 import javax.security.auth.message.config.AuthConfigFactory.RegistrationContext;
+
+import org.omnifaces.jaspic.config.factory.AuthConfigFileFactory;
+import org.omnifaces.jaspic.config.servlet.JAASServletAuthConfigProvider;
+
 import javax.security.auth.message.config.AuthConfigProvider;
 import javax.security.auth.message.config.RegistrationListener;
 import javax.security.auth.message.config.ServerAuthConfig;
