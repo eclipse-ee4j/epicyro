@@ -6,10 +6,25 @@ Jakarta Authentication consists of several profiles, with each profile telling h
 
 [Website](https://eclipse-ee4j.github.io/epicyro) (wip)
 
+Build Requirements
+------------------
+To build this project, you will need:
+
+1. Maven 3.6.3 or newer (http://maven.apache.org/download.html)
+2. JDK 11 or newer (e.g. https://adoptium.net/en-GB or https://jdk.java.net)
+
 Building
 --------
 
 Epicyro can be built by executing the following from the project root:
 
 ``mvn clean package``
+
+Downloads
+---------
+
+Downloads are available from the following locations:
+
+* [Maven Staging](https://jakarta.oss.sonatype.org/content/repositories/staging/org/glassfish/epicyro/epicyro/)
+* [Github releases](https://github.com/eclipse-ee4j/epicyro/releases) 
 
