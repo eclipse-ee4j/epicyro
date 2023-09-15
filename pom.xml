@@ -19,12 +19,12 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <parent>
         <groupId>org.eclipse.ee4j</groupId>
         <artifactId>project</artifactId>
         <version>1.0.7</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <groupId>org.glassfish.epicyro</groupId>
@@ -37,7 +37,6 @@
     </description>
     <url>https://projects.eclipse.org/projects/ee4j.epicyro</url>
     <inceptionYear>2023</inceptionYear>
-    
     <licenses>
         <license>
             <name>EPL 2.0</name>
@@ -119,6 +118,13 @@
         </dependency>
     </dependencies>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>dash-licenses-snapshots</id>
+            <url>https://repo.eclipse.org/content/groups/releases/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <build>
         <plugins>
             <plugin>
@@ -142,19 +148,19 @@
                 </executions>
             </plugin>
             
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.10.1</version>
             </plugin>
-            
-            
+
+
             <!-- Creates the OSGi MANIFEST.MF file -->
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <version>5.1.6</version>
-                <extensions>true</extensions>
                 <configuration>
                     <instructions>
                         <_noimportjava>true</_noimportjava>
@@ -191,8 +197,8 @@
                     </execution>
                 </executions>
             </plugin>
-            
-            
+
+
             <!-- Adds the manifest file created by the org.apache.felix:maven-bundle-plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -206,29 +212,12 @@
                     </archive>
                 </configuration>
             </plugin>
-           
-
-            <!-- Configure the jar with the sources. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
 
 
             <!-- Configure the jar with the sources. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -270,7 +259,49 @@ Use is subject to <a href="http://www.eclipse.org/legal/epl-2.0" target="_top">l
                     </execution>
                 </executions>
             </plugin>
+            
+            <!-- Check licenses of dependencies -->
+            <plugin>
+                <groupId>org.eclipse.dash</groupId>
+                <artifactId>license-tool-plugin</artifactId>
+                <version>1.0.2</version>
+                <executions>
+                    <execution>
+                        <id>license-check</id>
+                        <goals>
+                            <goal>license-check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- Generate a "consumer pom" for the generated jar -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.2.7</version>
+                <configuration>
+                    <flattenMode>ossrh</flattenMode>
+                </configuration>
+                <executions>
+                    <!-- enable flattening -->
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <!-- ensure proper cleanup -->
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
 </project>
