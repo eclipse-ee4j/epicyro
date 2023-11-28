@@ -21,8 +21,12 @@ import static java.util.logging.Level.WARNING;
 import static org.glassfish.epicyro.config.helper.LogManager.JASPIC_LOGGER;
 import static org.glassfish.epicyro.config.helper.LogManager.RES_BUNDLE;
 
+import jakarta.security.auth.message.config.AuthConfigFactory;
+import jakarta.security.auth.message.config.AuthConfigProvider;
+import jakarta.security.auth.message.config.RegistrationListener;
+import jakarta.security.auth.message.module.ServerAuthModule;
+import jakarta.servlet.ServletContext;
 import java.security.AccessController;
-import java.security.Permission;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,17 +40,10 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
-
 import org.glassfish.epicyro.config.factory.file.AuthConfigProviderEntry;
 import org.glassfish.epicyro.config.factory.file.RegStoreFileParser;
 import org.glassfish.epicyro.config.factory.singlemodule.DefaultAuthConfigProvider;
 import org.glassfish.epicyro.config.helper.OperationLock;
-
-import jakarta.security.auth.message.config.AuthConfigFactory;
-import jakarta.security.auth.message.config.AuthConfigProvider;
-import jakarta.security.auth.message.config.RegistrationListener;
-import jakarta.security.auth.message.module.ServerAuthModule;
-import jakarta.servlet.ServletContext;
 
 /**
  * This class implements methods in the abstract class AuthConfigFactory.
@@ -157,17 +154,12 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public String registerConfigProvider(String className, @SuppressWarnings("rawtypes") Map properties, String layer, String appContext,
-            String description) {
-        tryCheckPermission(providerRegistrationSecurityPermission);
-
+    public String registerConfigProvider(String className, @SuppressWarnings("rawtypes") Map properties, String layer, String appContext, String description) {
         return _register(_constructProvider(className, properties, null), properties, layer, appContext, description, true);
     }
 
     @Override
     public String registerConfigProvider(AuthConfigProvider provider, String layer, String appContext, String description) {
-        tryCheckPermission(providerRegistrationSecurityPermission);
-
         return _register(provider, null, layer, appContext, description, false);
     }
 
@@ -185,8 +177,6 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
      */
     @Override
     public boolean removeRegistration(String registrationID) {
-        tryCheckPermission(AuthConfigFactory.providerRegistrationSecurityPermission);
-
         return _unRegister(registrationID);
     }
 
@@ -209,8 +199,6 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
      */
     @Override
     public String[] detachListener(RegistrationListener listener, String layer, String appContext) {
-        tryCheckPermission(providerRegistrationSecurityPermission);
-
         List<String> removedListenerIds = new ArrayList<String>();
         String registrationId = getRegistrationID(layer, appContext);
 
@@ -287,8 +275,6 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
      */
     @Override
     public void refresh() {
-        tryCheckPermission(AuthConfigFactory.providerRegistrationSecurityPermission);
-
         Map<String, List<RegistrationListener>> preExistingListenersMap = doWriteLocked(() -> loadFactory());
 
         // Notify pre-existing listeners after (re)loading factory
@@ -321,17 +307,11 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
         ServletContext servletContext = (ServletContext) context;
 
         // Register the factory-factory-factory for the SAM
-        @SuppressWarnings("deprecation")
-        String registrationId = AccessController.doPrivileged(new PrivilegedAction<String>() {
-            @Override
-            public String run() {
-                return registerConfigProvider(
-                        new DefaultAuthConfigProvider(serverAuthModule),
-                        "HttpServlet",
-                        getAppContextID(servletContext),
-                        "Default single SAM authentication config provider");
-            }
-        });
+        String registrationId = registerConfigProvider(
+                new DefaultAuthConfigProvider(serverAuthModule),
+                "HttpServlet",
+                getAppContextID(servletContext),
+                "Default single SAM authentication config provider");
 
         // Remember the registration ID returned by the factory, so we can unregister the JASPIC module when the web module
         // is undeployed. JASPIC being the low level API that it is won't do this automatically.
@@ -708,13 +688,6 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
             }
         }
         return effectedListeners;
-    }
-
-    private static void tryCheckPermission(Permission permission) {
-        SecurityManager securityManager = System.getSecurityManager();
-        if (securityManager != null) {
-            securityManager.checkPermission(permission);
-        }
     }
 
     protected <T> T doReadLocked(Supplier<T> supplier) {
