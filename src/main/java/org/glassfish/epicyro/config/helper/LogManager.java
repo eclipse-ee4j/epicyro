@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -34,7 +35,7 @@ public class LogManager {
     public static final String JASPIC_LOGGER = "enterprise.system.jaspic.security";
     public static final String RES_BUNDLE = PACKAGE_ROOT + JASPIC_LOGGER + "." + RESOURCE_BUNDLE;
 
-    private String loggerName;
+    private final String loggerName;
 
     public LogManager(String loggerName) {
         this.loggerName = loggerName;

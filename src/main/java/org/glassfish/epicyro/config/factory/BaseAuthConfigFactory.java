@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2022 OmniFish and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -199,7 +199,7 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
      */
     @Override
     public String[] detachListener(RegistrationListener listener, String layer, String appContext) {
-        List<String> removedListenerIds = new ArrayList<String>();
+        List<String> removedListenerIds = new ArrayList<>();
         String registrationId = getRegistrationID(layer, appContext);
 
         doWriteLocked(() -> {
@@ -275,7 +275,7 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
      */
     @Override
     public void refresh() {
-        Map<String, List<RegistrationListener>> preExistingListenersMap = doWriteLocked(() -> loadFactory());
+        Map<String, List<RegistrationListener>> preExistingListenersMap = doWriteLocked(this::loadFactory);
 
         // Notify pre-existing listeners after (re)loading factory
         if (preExistingListenersMap != null) {
@@ -446,9 +446,7 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
                         .getConstructor(Map.class, AuthConfigFactory.class)
                         .newInstance(new Object[] { properties, factory });
             } catch (Throwable t) {
-                Throwable cause = t.getCause();
-                logger.log(WARNING, "jaspic.factory_unable_to_load_provider",
-                        new Object[] { className, t.toString(), cause == null ? "cannot determine" : cause.toString() });
+                logger.log(WARNING, "GFAuthConfigFactory unable to load Provider " + className, t);
             }
         }
 
@@ -573,9 +571,7 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
                 }
             }
         } catch (Exception e) {
-            if (logger.isLoggable(WARNING)) {
-                logger.log(WARNING, "jaspic.factory_auth_config_loader_failure", e);
-            }
+            logger.log(WARNING, "AuthConfigFactory loader failure", e);
         }
     }
 
@@ -583,10 +579,10 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
      * Initialize the static maps in a static method
      */
     private static void initializeMaps() {
-        idToProviderMap = new HashMap<String, AuthConfigProvider>();
-        idToRegistrationContextMap = new HashMap<String, RegistrationContext>();
-        idToRegistrationListenersMap = new HashMap<String, List<RegistrationListener>>();
-        providerToIdsMap = new HashMap<AuthConfigProvider, List<String>>();
+        idToProviderMap = new HashMap<>();
+        idToRegistrationContextMap = new HashMap<>();
+        idToRegistrationListenersMap = new HashMap<>();
+        providerToIdsMap = new HashMap<>();
     }
 
     private static String _loadRegistration(AuthConfigProvider provider, String layer, String appContext, String description) {
@@ -610,7 +606,7 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
 
         List<String> registrationIds = providerToIdsMap.get(provider);
         if (registrationIds == null) {
-            registrationIds = new ArrayList<String>();
+            registrationIds = new ArrayList<>();
             providerToIdsMap.put(provider, registrationIds);
         }
 
@@ -676,13 +672,13 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
      * a provider registration id that is more specific than the one being added or removed.
      */
     private static Map<String, List<RegistrationListener>> getEffectedListeners(String regisID) {
-        Map<String, List<RegistrationListener>> effectedListeners = new HashMap<String, List<RegistrationListener>>();
-        Set<String> listenerRegistrations = new HashSet<String>(idToRegistrationListenersMap.keySet());
+        Map<String, List<RegistrationListener>> effectedListeners = new HashMap<>();
+        Set<String> listenerRegistrations = new HashSet<>(idToRegistrationListenersMap.keySet());
 
         for (String listenerID : listenerRegistrations) {
             if (regIdImplies(regisID, listenerID)) {
                 if (!effectedListeners.containsKey(listenerID)) {
-                    effectedListeners.put(listenerID, new ArrayList<RegistrationListener>());
+                    effectedListeners.put(listenerID, new ArrayList<>());
                 }
                 effectedListeners.get(listenerID).addAll(idToRegistrationListenersMap.remove(listenerID));
             }

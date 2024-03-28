@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -63,7 +64,7 @@ public final class RegStoreFileParser {
     private List<AuthConfigProviderEntry> authConfigProviderEntries;
 
     public RegStoreFileParser(List<AuthConfigProviderEntry> authConfigProviderEntries) {
-        this.authConfigProviderEntries = new ArrayList<AuthConfigProviderEntry>(authConfigProviderEntries);
+        this.authConfigProviderEntries = new ArrayList<>(authConfigProviderEntries);
     }
 
     /**
@@ -76,8 +77,8 @@ public final class RegStoreFileParser {
 
         try {
             loadEntries(defaultEntries);
-        } catch (IOException | IllegalArgumentException ioe) {
-            logWarningDefault(ioe);
+        } catch (IOException | IllegalArgumentException e) {
+            logger.log(WARNING, "Could not read auth configuration file. Will use default providers.", e);
         }
     }
 
@@ -98,7 +99,8 @@ public final class RegStoreFileParser {
                 try {
                     writeEntries();
                 } catch (IOException ioe) {
-                    logWarningUpdated(ioe);
+                    logger.log(WARNING,
+                        "Could not persist updated provider list. Will use default providers when reloaded.", ioe);
                 }
             }
         }
@@ -114,7 +116,8 @@ public final class RegStoreFileParser {
                 try {
                     writeEntries();
                 } catch (IOException ioe) {
-                    logWarningUpdated(ioe);
+                    logger.log(WARNING,
+                        "Could not persist updated provider list. Will use default providers when reloaded.", ioe);
                 }
             }
         }
@@ -206,7 +209,7 @@ public final class RegStoreFileParser {
      */
     private void writeEntries() throws IOException {
         if (configurationFile.exists() && !configurationFile.canWrite() && logger.isLoggable(WARNING)) {
-            logger.log(WARNING, "jaspic.factory_cannot_write_file", configurationFile.getPath());
+            logger.log(WARNING, "Cannot write to file {0}. Updated provider list will not be persisted.", configurationFile);
         }
 
         clearExistingFile();
@@ -287,7 +290,7 @@ public final class RegStoreFileParser {
         }
 
         if (newCreation) {
-            logger.log(INFO, "jaspic.factory_creating_conf_file", configurationFile.getPath());
+            logger.log(INFO, "Creating JMAC Configuration file {0}.", configurationFile);
         }
 
         if (!configurationFile.createNewFile()) {
@@ -301,7 +304,7 @@ public final class RegStoreFileParser {
      */
     private void loadEntries(List<AuthConfigProviderEntry> defaultAuthConfigProviderEntries) throws IOException {
         synchronized (configurationFile) {
-            authConfigProviderEntries = new ArrayList<AuthConfigProviderEntry>();
+            authConfigProviderEntries = new ArrayList<>();
             if (configurationFile.exists()) {
                 try (BufferedReader reader = new BufferedReader(new FileReader(configurationFile))) {
                     String line = reader.readLine();
@@ -316,10 +319,8 @@ public final class RegStoreFileParser {
                     }
                 }
             } else {
-                if (logger.isLoggable(FINER)) {
-                    logger.log(FINER, "jaspic.factory_file_not_found",
-                            configurationFile.getParent() + File.pathSeparator + configurationFile.getPath());
-                }
+                logger.log(FINER, "Configuration file {0} does not exist. Will use default providers.",
+                    configurationFile);
 
                 if (defaultAuthConfigProviderEntries != null) {
                     for (AuthConfigProviderEntry entry : defaultAuthConfigProviderEntries) {
@@ -354,7 +355,7 @@ public final class RegStoreFileParser {
             return null;
         }
 
-        Map<String, String> properties = new HashMap<String, String>();
+        Map<String, String> properties = new HashMap<>();
         while (!"}".equals(line)) {
             properties.put(line.substring(0, line.indexOf(SEP)), line.substring(line.indexOf(SEP) + 1, line.length()));
             line = reader.readLine();
@@ -369,7 +370,7 @@ public final class RegStoreFileParser {
     private AuthConfigProviderEntry readRegEntry(BufferedReader reader) throws IOException {
         String className = null;
         Map<String, String> properties = null;
-        List<RegistrationContext> ctxs = new ArrayList<RegistrationContext>();
+        List<RegistrationContext> ctxs = new ArrayList<>();
         String line = reader.readLine();
         if (line != null) {
             line = line.trim();
@@ -418,17 +419,4 @@ public final class RegStoreFileParser {
 
         return new RegistrationContextImpl(layer, appCtx, description, true);
     }
-
-    private void logWarningUpdated(Exception exception) {
-        if (logger.isLoggable(WARNING)) {
-            logger.log(WARNING, "jaspic.factory_could_not_persist", exception.toString());
-        }
-    }
-
-    private void logWarningDefault(Exception exception) {
-        if (logger.isLoggable(WARNING)) {
-            logger.log(WARNING, "jaspic.factory_could_not_read", exception.toString());
-        }
-    }
-
 }

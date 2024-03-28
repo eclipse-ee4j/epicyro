@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -98,11 +99,8 @@ public class ObjectUtils {
         try {
             return Class.forName(moduleClassName, true, getClassLoader()).getConstructor(parameterTypes).newInstance(initargs);
         } catch (Exception e) {
-            if (logger.isLoggable(WARNING)) {
-                logger.log(WARNING, "jaspic.provider_unable_to_load_authmodule", new String[] { moduleClassName, e.toString() });
-            }
-
-            throw (AuthException) new AuthException().initCause(e);
+            logger.log(WARNING, "Unable to load auth module for {0}", moduleClassName);
+            throw new AuthException(e);
         }
     }
 
@@ -111,13 +109,11 @@ public class ObjectUtils {
             return Thread.currentThread().getContextClassLoader();
         }
 
-        return (ClassLoader) AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        return (ClassLoader) AccessController.doPrivileged(new PrivilegedAction<>() {
             @Override
             public Object run() {
                 return Thread.currentThread().getContextClassLoader();
             }
         });
     }
-
-
 }
