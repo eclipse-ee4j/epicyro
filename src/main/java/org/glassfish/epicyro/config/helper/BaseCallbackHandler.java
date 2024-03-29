@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -14,20 +15,19 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-/*
- * BaseContainerCallbackHandler.java
- *
- * Created on April 21, 2004, 11:56 AM
- */
-
 package org.glassfish.epicyro.config.helper;
 
-import static java.util.Collections.list;
-import static java.util.logging.Level.FINE;
-import static java.util.logging.Level.WARNING;
+import jakarta.security.auth.message.callback.CallerPrincipalCallback;
+import jakarta.security.auth.message.callback.CertStoreCallback;
+import jakarta.security.auth.message.callback.GroupPrincipalCallback;
+import jakarta.security.auth.message.callback.PasswordValidationCallback;
+import jakarta.security.auth.message.callback.PrivateKeyCallback;
+import jakarta.security.auth.message.callback.SecretKeyCallback;
+import jakarta.security.auth.message.callback.TrustStoreCallback;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.System.Logger;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
@@ -48,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.crypto.SecretKey;
 import javax.security.auth.Subject;
@@ -59,17 +58,16 @@ import javax.security.auth.x500.X500Principal;
 
 import org.glassfish.epicyro.services.InMemoryStore;
 
-import jakarta.security.auth.message.callback.CallerPrincipalCallback;
-import jakarta.security.auth.message.callback.CertStoreCallback;
-import jakarta.security.auth.message.callback.GroupPrincipalCallback;
-import jakarta.security.auth.message.callback.PasswordValidationCallback;
-import jakarta.security.auth.message.callback.PrivateKeyCallback;
-import jakarta.security.auth.message.callback.SecretKeyCallback;
-import jakarta.security.auth.message.callback.TrustStoreCallback;
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.WARNING;
+import static java.util.Collections.list;
 
+/**
+ * Created on April 21, 2004, 11:56 AM
+ */
 public abstract class BaseCallbackHandler implements CallbackHandler {
 
-    public static final Logger LOG = Logger.getLogger(ModuleConfigurationManager.class.getName());
+    private static final Logger LOG = System.getLogger(BaseCallbackHandler.class.getName());
 
     private static final String DEFAULT_DIGEST_ALGORITHM = "SHA-1";
 
@@ -281,13 +279,13 @@ public abstract class BaseCallbackHandler implements CallbackHandler {
                     certificateChain = privateKeyEntry.getCertificateChain();
                 }
             } else {
-                LOG.log(FINE, () -> "invalid request type: " + request.getClass().getName());
+                LOG.log(DEBUG, "Invalid request type: {0}", request.getClass().getName());
             }
         } catch (Exception e) {
             // UnrecoverableKeyException
             // NoSuchAlgorithmException
             // KeyStoreException
-            LOG.log(FINE, "Jakarta Authentication: In PrivateKeyCallback Processor: Error reading key !", e);
+            LOG.log(DEBUG, "Jakarta Authentication: In PrivateKeyCallback Processor: Error reading key !", e);
         } finally {
             privateKeyCallback.setKey(privateKey, certificateChain);
         }
@@ -313,7 +311,7 @@ public abstract class BaseCallbackHandler implements CallbackHandler {
                 }
             }
         } catch (Exception e) {
-            LOG.log(FINE, "Exception in getDefaultPrivateKeyEntry", e);
+            LOG.log(DEBUG, "Exception in getDefaultPrivateKeyEntry", e);
         }
 
         return new PrivateKeyEntry(privateKey, certificates);
@@ -328,7 +326,7 @@ public abstract class BaseCallbackHandler implements CallbackHandler {
     }
 
     protected void processCertStore(CertStoreCallback certStoreCallback) {
-        LOG.log(FINE, "Jakarta Authentication: In CertStoreCallback Processor");
+        LOG.log(DEBUG, "Jakarta Authentication: In CertStoreCallback Processor");
 
         KeyStore certStore = getTrustStore();
         if (certStore == null) { // should never happen (but of course, it practice it will)
@@ -344,7 +342,7 @@ public abstract class BaseCallbackHandler implements CallbackHandler {
                             certificates.add(certStore.getCertificate(alias));
                         } catch (KeyStoreException kse) {
                             // ignore and move to next
-                            LOG.log(FINE, () -> "Jakarta Authentication: Cannot retrieve certificate for alias " + alias);
+                            LOG.log(DEBUG, "Jakarta Authentication: Cannot retrieve certificate for alias {0}", alias);
                         }
                     }
                 }
@@ -353,21 +351,21 @@ public abstract class BaseCallbackHandler implements CallbackHandler {
             certStoreCallback.setCertStore(
                 CertStore.getInstance("Collection", new CollectionCertStoreParameters(certificates)));
         } catch (KeyStoreException kse) {
-            LOG.log(FINE, "Jakarta Authentication:  Cannot determine truststore aliases", kse);
+            LOG.log(DEBUG, "Jakarta Authentication:  Cannot determine truststore aliases", kse);
         } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException nsape) {
-            LOG.log(FINE, "Jakarta Authentication:  Cannot instantiate CertStore", nsape);
+            LOG.log(DEBUG, "Jakarta Authentication:  Cannot instantiate CertStore", nsape);
         }
     }
 
     protected void processSecretKey(SecretKeyCallback secretKeyCallback) {
-        LOG.log(FINE, "Jakarta Authentication: In SecretKeyCallback Processor");
+        LOG.log(DEBUG, "Jakarta Authentication: In SecretKeyCallback Processor");
 
         String alias = ((SecretKeyCallback.AliasRequest) secretKeyCallback.getRequest()).getAlias();
         if (alias != null) {
             try {
                 secretKeyCallback.setKey(getPasswordSecretKeyForAlias(alias));
             } catch (Exception e) {
-                LOG.log(FINE, e, () -> "Jakarta Authentication: In SecretKeyCallback Processor: " + " Error reading key ! for alias " + alias);
+                LOG.log(DEBUG, () -> "Jakarta Authentication: In SecretKeyCallback Processor: Error reading key ! for alias " + alias, e);
                 secretKeyCallback.setKey(null);
             }
         } else {
@@ -482,7 +480,7 @@ public abstract class BaseCallbackHandler implements CallbackHandler {
             // UnrecoverableKeyException
             // NoSuchAlgorithmException
             // KeyStoreException
-            LOG.log(FINE, "Exception in getPrivateKeyEntry for Digest", e);
+            LOG.log(DEBUG, "Exception in getPrivateKeyEntry for Digest", e);
         }
 
         return new PrivateKeyEntry(privateKey, certificates);

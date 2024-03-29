@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2022 OmniFish and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -17,15 +17,10 @@
 
 package org.glassfish.epicyro.config.helper;
 
-import static java.security.AccessController.doPrivileged;
-import static java.util.logging.Level.FINE;
-import static java.util.logging.Level.INFO;
-import static java.util.logging.Level.WARNING;
-import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.OPTIONAL;
-import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUIRED;
-import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUISITE;
-import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.SUFFICIENT;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.AuthStatus;
 
+import java.lang.System.Logger;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.security.PrivilegedActionException;
@@ -42,8 +37,15 @@ import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
 
 import org.glassfish.epicyro.config.jaas.ExtendedConfigFile;
 
-import jakarta.security.auth.message.AuthException;
-import jakarta.security.auth.message.AuthStatus;
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.INFO;
+import static java.lang.System.Logger.Level.TRACE;
+import static java.lang.System.Logger.Level.WARNING;
+import static java.security.AccessController.doPrivileged;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.OPTIONAL;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUIRED;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUISITE;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.SUFFICIENT;
 
 /**
  *
@@ -51,25 +53,25 @@ import jakarta.security.auth.message.AuthStatus;
  */
 public class JAASModulesManager extends ModulesManager {
 
+    private static final Logger LOG = System.getLogger(JAASModulesManager.class.getName());
+
     private static final String DEFAULT_ENTRY_NAME = "other";
     private static final Class<?>[] PARAMS = {};
     private static final Object[] ARGS = {};
 
-    private LogManager logManager;
-    private ExtendedConfigFile jaasConfig;
+    private final ExtendedConfigFile jaasConfig;
     private final String appContext;
 
     // may be more than one delegate for a given jaas config file
-    private ReentrantReadWriteLock instanceReadWriteLock = new ReentrantReadWriteLock();
-    private Lock instanceWriteLock = instanceReadWriteLock.writeLock();
+    private final ReentrantReadWriteLock instanceReadWriteLock = new ReentrantReadWriteLock();
+    private final Lock instanceWriteLock = instanceReadWriteLock.writeLock();
 
     private AppConfigurationEntry[] appConfigurationEntry;
     private Constructor<?>[] loginModuleConstructors;
 
-    public JAASModulesManager(LogManager logManager, boolean returnNullContexts, ExtendedConfigFile jaasConfig, Map<String, ?> properties, String appContext) throws AuthException {
+    public JAASModulesManager(boolean returnNullContexts, ExtendedConfigFile jaasConfig, Map<String, ?> properties, String appContext) throws AuthException {
         super(returnNullContexts);
 
-        this.logManager = logManager;
         this.jaasConfig = jaasConfig;
         this.appContext = appContext;
 
@@ -78,7 +80,7 @@ public class JAASModulesManager extends ModulesManager {
 
     @Override
     public Map<String, Object> getInitProperties(int i, Map<String, ?> properties) {
-        Map<String, Object> initProperties = new HashMap<String, Object>();
+        Map<String, Object> initProperties = new HashMap<>();
 
         if (appConfigurationEntry[i] != null) {
             if (properties != null && !properties.isEmpty()) {
@@ -136,7 +138,7 @@ public class JAASModulesManager extends ModulesManager {
     public <M> M[] getModules(M[] template, String authContextID) throws AuthException {
         loadConstructors(template, authContextID);
 
-        List<M> moduleInstances = new ArrayList<M>(loginModuleConstructors.length);
+        List<M> moduleInstances = new ArrayList<>(loginModuleConstructors.length);
 
         for (int moduleNumber = 0; moduleNumber < loginModuleConstructors.length; moduleNumber++) {
             if (loginModuleConstructors[moduleNumber] == null) {
@@ -197,43 +199,37 @@ public class JAASModulesManager extends ModulesManager {
 
                 LoginModuleControlFlag flag = appConfigurationEntry[moduleNumber].getControlFlag();
 
-                if (logManager.isLoggable(FINE)) {
-                    logManager.logIfLevel(FINE, null, "getReturnStatus - flag: ", flag.toString());
-                }
+                LOG.log(DEBUG, "getReturnStatus - flag: {0}", flag);
 
+                final AuthStatus moduleAuthStatus = status[moduleNumber];
                 if (flag == REQUIRED || flag == REQUISITE) {
                     boolean isSuccessValue = false;
                     for (AuthStatus authStatus : successValue) {
-                        if (status[moduleNumber] == authStatus) {
+                        if (authStatus == moduleAuthStatus) {
                             isSuccessValue = true;
                         }
                     }
 
                     if (isSuccessValue) {
                         if (returnStatus == null) {
-                            returnStatus = status[moduleNumber];
+                            returnStatus = moduleAuthStatus;
                         }
                         continue;
                     }
 
-                    if (logManager.isLoggable(FINE)) {
-                        logManager.logIfLevel(FINE, null, "ReturnStatus - REQUIRED or REQUISITE failure: ", status[moduleNumber].toString());
-                    }
-                    return status[moduleNumber];
+                    LOG.log(DEBUG, "ReturnStatus - REQUIRED or REQUISITE failure: {0}", moduleAuthStatus);
+                    return moduleAuthStatus;
                 } else if (flag == SUFFICIENT) {
-                    if (shouldStopProcessingModules(successValue, moduleNumber, status[moduleNumber])) {
-                        if (logManager.isLoggable(FINE)) {
-                            logManager.logIfLevel(FINE, null, "ReturnStatus - Sufficient success: ", status[moduleNumber].toString());
-                        }
-
-                        return status[moduleNumber];
+                    if (shouldStopProcessingModules(successValue, moduleNumber, moduleAuthStatus)) {
+                        LOG.log(DEBUG, "ReturnStatus - Sufficient success: {0}", moduleAuthStatus);
+                        return moduleAuthStatus;
                     }
 
                 } else if (flag == OPTIONAL) {
                     if (returnStatus == null) {
                         for (AuthStatus authStatus : successValue) {
-                            if (status[moduleNumber] == authStatus) {
-                                returnStatus = status[moduleNumber];
+                            if (moduleAuthStatus == authStatus) {
+                                returnStatus = moduleAuthStatus;
                             }
                         }
                     }
@@ -242,16 +238,11 @@ public class JAASModulesManager extends ModulesManager {
         }
 
         if (returnStatus != null) {
-            if (logManager.isLoggable(FINE)) {
-                logManager.logIfLevel(FINE, null, "ReturnStatus - result: ", returnStatus.toString());
-            }
-
+            LOG.log(DEBUG, "ReturnStatus - result: {0}", returnStatus);
             return returnStatus;
         }
 
-        if (logManager.isLoggable(FINE)) {
-            logManager.logIfLevel(FINE, null, "ReturnStatus - Default faiure status: ", defaultFailStatus.toString());
-        }
+        LOG.log(DEBUG, "ReturnStatus - Default faiure status: {0}", defaultFailStatus);
 
         return defaultFailStatus;
     }
@@ -285,10 +276,9 @@ public class JAASModulesManager extends ModulesManager {
 
         if (!found) {
             if (!foundDefault) {
-                logManager.logIfLevel(INFO, null, "JAASModulesManager no entries matched appContext (", appContext, ") or (", DEFAULT_ENTRY_NAME,
-                        ")");
+                LOG.log(INFO, "JAASModulesManager no entries matched appContext ({0}) or ({1})", appContext, DEFAULT_ENTRY_NAME);
             } else {
-                logManager.logIfLevel(INFO, null, "JAASModulesManager appContext (", appContext, ") matched (", DEFAULT_ENTRY_NAME, ")");
+                LOG.log(INFO, "JAASModulesManager appContext ({0}) matched ({1})", appContext, DEFAULT_ENTRY_NAME);
             }
         }
     }
@@ -315,7 +305,8 @@ public class JAASModulesManager extends ModulesManager {
                                 }
 
                             } catch (Throwable t) {
-                                logManager.logIfLevel(WARNING, null, "skipping unloadable class: ", loginModuleName, " of appCOntext: ", appContext);
+                                LOG.log(WARNING, "Skipping unloadable class: {0} of appCOntext: {1}", loginModuleName, appContext);
+                                LOG.log(TRACE, "Skipping unloadable class - cause.", t);
                             }
                         }
                         return loginModuleCtors;

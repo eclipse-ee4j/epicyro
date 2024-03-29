@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -16,6 +17,11 @@
 
 package org.glassfish.epicyro.config.module.config;
 
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.config.ServerAuthConfig;
+import jakarta.security.auth.message.config.ServerAuthContext;
+import jakarta.security.auth.message.module.ServerAuthModule;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,24 +33,19 @@ import org.glassfish.epicyro.config.helper.EpochCarrier;
 import org.glassfish.epicyro.config.helper.ModulesManager;
 import org.glassfish.epicyro.config.module.context.ServerAuthContextImpl;
 
-import jakarta.security.auth.message.AuthException;
-import jakarta.security.auth.message.config.ServerAuthConfig;
-import jakarta.security.auth.message.config.ServerAuthContext;
-import jakarta.security.auth.message.module.ServerAuthModule;
-
 /**
  *
  * @author Ron Monzillo
  */
 public class ServerAuthConfigImpl extends BaseAuthConfigImpl implements ServerAuthConfig {
 
+    private final ModulesManager authContextHelper;
     private Map<String, Map<Integer, ServerAuthContext>> contextMap;
-    private ModulesManager authContextHelper;
 
-    public ServerAuthConfigImpl(String loggerName, EpochCarrier providerEpoch, ModulesManager authContextHelper, MessagePolicyDelegate policyDelegate,
+    public ServerAuthConfigImpl(EpochCarrier providerEpoch, ModulesManager authContextHelper, MessagePolicyDelegate policyDelegate,
             String layer, String appContext, CallbackHandler callbackHandler) throws AuthException {
 
-        super(loggerName, providerEpoch, policyDelegate, layer, appContext, callbackHandler);
+        super(providerEpoch, policyDelegate, layer, appContext, callbackHandler);
 
         this.authContextHelper = authContextHelper;
         this.policyDelegate = policyDelegate;
@@ -76,7 +77,7 @@ public class ServerAuthConfigImpl extends BaseAuthConfigImpl implements ServerAu
 
         // Need to coordinate calls to CallerPrincipalCallback; especially optional
         // modules that might reset the result of a required module
-        return (M) new ServerAuthContextImpl(loggerName, authContextHelper, policyDelegate, getAppContext(), callbackHandler, authContextID, properties);
+        return (M) new ServerAuthContextImpl(authContextHelper, policyDelegate, getAppContext(), callbackHandler, authContextID, properties);
     }
 
 }

@@ -17,28 +17,26 @@
 
 package org.glassfish.epicyro.config.factory.file;
 
-import static java.util.logging.Level.FINER;
-import static java.util.logging.Level.INFO;
-import static java.util.logging.Level.WARNING;
-import static org.glassfish.epicyro.config.helper.LogManager.JASPIC_LOGGER;
-import static org.glassfish.epicyro.config.helper.LogManager.RES_BUNDLE;
+import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.System.Logger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.glassfish.epicyro.config.factory.RegistrationContextImpl;
 
-import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContext;
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.INFO;
+import static java.lang.System.Logger.Level.WARNING;
 
 /**
  * Used by ServerConfigProvider to parse the configuration file. If a file does not exist originally, the default
@@ -49,7 +47,7 @@ import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContex
  */
 public final class RegStoreFileParser {
 
-    private static final Logger logger = Logger.getLogger(JASPIC_LOGGER, RES_BUNDLE);
+    private static final Logger LOG = System.getLogger(RegStoreFileParser.class.getName());
 
     private static final String SEP = ":";
     private static final String CON_ENTRY = "con-entry";
@@ -78,7 +76,7 @@ public final class RegStoreFileParser {
         try {
             loadEntries(defaultEntries);
         } catch (IOException | IllegalArgumentException e) {
-            logger.log(WARNING, "Could not read auth configuration file. Will use default providers.", e);
+            LOG.log(WARNING, "Could not read auth configuration file. Will use default providers.", e);
         }
     }
 
@@ -99,7 +97,7 @@ public final class RegStoreFileParser {
                 try {
                     writeEntries();
                 } catch (IOException ioe) {
-                    logger.log(WARNING,
+                    LOG.log(WARNING,
                         "Could not persist updated provider list. Will use default providers when reloaded.", ioe);
                 }
             }
@@ -116,7 +114,7 @@ public final class RegStoreFileParser {
                 try {
                     writeEntries();
                 } catch (IOException ioe) {
-                    logger.log(WARNING,
+                    LOG.log(WARNING,
                         "Could not persist updated provider list. Will use default providers when reloaded.", ioe);
                 }
             }
@@ -208,8 +206,8 @@ public final class RegStoreFileParser {
      * This method overwrites the existing file with the current authConfigProviderEntries.
      */
     private void writeEntries() throws IOException {
-        if (configurationFile.exists() && !configurationFile.canWrite() && logger.isLoggable(WARNING)) {
-            logger.log(WARNING, "Cannot write to file {0}. Updated provider list will not be persisted.", configurationFile);
+        if (configurationFile.exists() && !configurationFile.canWrite()) {
+            LOG.log(WARNING, "Cannot write to file {0}. Updated provider list will not be persisted.", configurationFile);
         }
 
         clearExistingFile();
@@ -290,7 +288,7 @@ public final class RegStoreFileParser {
         }
 
         if (newCreation) {
-            logger.log(INFO, "Creating JMAC Configuration file {0}.", configurationFile);
+            LOG.log(INFO, "Creating JMAC Configuration file {0}.", configurationFile);
         }
 
         if (!configurationFile.createNewFile()) {
@@ -298,9 +296,10 @@ public final class RegStoreFileParser {
         }
     }
 
+
     /**
-     * Called from the constructor. This is the only time the file is read, though it is written when new authConfigProviderEntries are stored
-     * or deleted.
+     * Called from the constructor. This is the only time the file is read, though it is written
+     * when new authConfigProviderEntries are stored or deleted.
      */
     private void loadEntries(List<AuthConfigProviderEntry> defaultAuthConfigProviderEntries) throws IOException {
         synchronized (configurationFile) {
@@ -319,9 +318,7 @@ public final class RegStoreFileParser {
                     }
                 }
             } else {
-                logger.log(FINER, "Configuration file {0} does not exist. Will use default providers.",
-                    configurationFile);
-
+                LOG.log(DEBUG, "Configuration file {0} does not exist. Will use default providers.", configurationFile);
                 if (defaultAuthConfigProviderEntries != null) {
                     for (AuthConfigProviderEntry entry : defaultAuthConfigProviderEntries) {
                         authConfigProviderEntries.add(new AuthConfigProviderEntry(entry));

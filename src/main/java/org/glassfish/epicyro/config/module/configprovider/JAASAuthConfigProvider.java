@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -16,16 +17,16 @@
 
 package org.glassfish.epicyro.config.module.configprovider;
 
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.config.AuthConfigFactory;
+import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContext;
+
 import java.util.Locale;
 import java.util.Map;
 
 import org.glassfish.epicyro.config.helper.JAASModulesManager;
 import org.glassfish.epicyro.config.helper.ModulesManager;
 import org.glassfish.epicyro.config.jaas.ExtendedConfigFile;
-
-import jakarta.security.auth.message.AuthException;
-import jakarta.security.auth.message.config.AuthConfigFactory;
-import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContext;
 
 /**
  *
@@ -37,10 +38,10 @@ public abstract class JAASAuthConfigProvider extends BaseAuthConfigProvider {
     private static final String DEFAULT_JAAS_APP_NAME = "other";
     private static final String ALL_APPS = "*";
 
-    private ExtendedConfigFile jaasConfigFile;
+    private final ExtendedConfigFile jaasConfigFile;
 
-    private Map<String, ?> properties;
-    private AuthConfigFactory factory;
+    private final Map<String, ?> properties;
+    private final AuthConfigFactory factory;
 
     public JAASAuthConfigProvider(Map<String, ?> properties, AuthConfigFactory factory) {
         this.properties = properties;
@@ -74,7 +75,7 @@ public abstract class JAASAuthConfigProvider extends BaseAuthConfigProvider {
 
     @Override
     public ModulesManager getModulesManager(String appContext, boolean returnNullContexts) throws AuthException {
-        return new JAASModulesManager(getLogManager(), returnNullContexts, jaasConfigFile, properties, appContext);
+        return new JAASModulesManager(returnNullContexts, jaasConfigFile, properties, appContext);
     }
 
     @Override

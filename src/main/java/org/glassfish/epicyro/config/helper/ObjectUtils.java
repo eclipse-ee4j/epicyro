@@ -17,23 +17,19 @@
 
 package org.glassfish.epicyro.config.helper;
 
-import static java.security.AccessController.doPrivileged;
-import static java.util.logging.Level.WARNING;
+import jakarta.security.auth.message.AuthException;
 
 import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.logging.Logger;
 
 import org.glassfish.epicyro.config.factory.ConfigParser;
 
-import jakarta.security.auth.message.AuthException;
+import static java.security.AccessController.doPrivileged;
 
 public class ObjectUtils {
-
-    private static final Logger logger = Logger.getLogger(ObjectUtils.class.getName());
 
     // For loading modules
     private static final Class<?>[] EMPTY_PARAMS = {};
@@ -99,8 +95,7 @@ public class ObjectUtils {
         try {
             return Class.forName(moduleClassName, true, getClassLoader()).getConstructor(parameterTypes).newInstance(initargs);
         } catch (Exception e) {
-            logger.log(WARNING, "Unable to load auth module for {0}", moduleClassName);
-            throw new AuthException(e);
+            throw new AuthException("Unable to load auth module for " + moduleClassName, e);
         }
     }
 

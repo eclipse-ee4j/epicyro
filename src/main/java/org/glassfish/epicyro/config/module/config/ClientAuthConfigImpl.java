@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -16,13 +17,16 @@
 
 package org.glassfish.epicyro.config.module.config;
 
-import static java.util.logging.Level.FINE;
-import static java.util.logging.Level.SEVERE;
-import static java.util.logging.Level.WARNING;
-import static jakarta.security.auth.message.AuthStatus.SEND_FAILURE;
-import static jakarta.security.auth.message.AuthStatus.SEND_SUCCESS;
-import static jakarta.security.auth.message.AuthStatus.SUCCESS;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.AuthStatus;
+import jakarta.security.auth.message.MessageInfo;
+import jakarta.security.auth.message.MessagePolicy;
+import jakarta.security.auth.message.config.ClientAuthConfig;
+import jakarta.security.auth.message.config.ClientAuthContext;
+import jakarta.security.auth.message.module.ClientAuthModule;
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,13 +37,11 @@ import org.glassfish.epicyro.config.delegate.MessagePolicyDelegate;
 import org.glassfish.epicyro.config.helper.EpochCarrier;
 import org.glassfish.epicyro.config.helper.ModulesManager;
 
-import jakarta.security.auth.message.AuthException;
-import jakarta.security.auth.message.AuthStatus;
-import jakarta.security.auth.message.MessageInfo;
-import jakarta.security.auth.message.MessagePolicy;
-import jakarta.security.auth.message.config.ClientAuthConfig;
-import jakarta.security.auth.message.config.ClientAuthContext;
-import jakarta.security.auth.message.module.ClientAuthModule;
+import static jakarta.security.auth.message.AuthStatus.SEND_FAILURE;
+import static jakarta.security.auth.message.AuthStatus.SEND_SUCCESS;
+import static jakarta.security.auth.message.AuthStatus.SUCCESS;
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.WARNING;
 
 /**
  *
@@ -47,15 +49,17 @@ import jakarta.security.auth.message.module.ClientAuthModule;
  */
 public class ClientAuthConfigImpl extends BaseAuthConfigImpl implements ClientAuthConfig {
 
-    private final static AuthStatus[] validateResponseSuccessValues = { SUCCESS };
-    private final static AuthStatus[] secureResponseSuccessValues = { SEND_SUCCESS };
+    private static final Logger LOG = System.getLogger(ClientAuthConfigImpl.class.getName());
+
+    private static final AuthStatus[] validateResponseSuccessValues = { SUCCESS };
+    private static final AuthStatus[] secureResponseSuccessValues = { SEND_SUCCESS };
 
     private Map<String, Map<Integer, ClientAuthContext>> contextMap;
-    private ModulesManager authContextHelper;
+    private final ModulesManager authContextHelper;
 
-    public ClientAuthConfigImpl(String loggerName, EpochCarrier providerEpoch, ModulesManager acHelper,
-            MessagePolicyDelegate mpDelegate, String layer, String appContext, CallbackHandler cbh) throws AuthException {
-        super(loggerName, providerEpoch, mpDelegate, layer, appContext, cbh);
+    public ClientAuthConfigImpl(EpochCarrier providerEpoch, ModulesManager acHelper, MessagePolicyDelegate mpDelegate,
+        String layer, String appContext, CallbackHandler cbh) throws AuthException {
+        super(providerEpoch, mpDelegate, layer, appContext, cbh);
 
         this.authContextHelper = acHelper;
     }
@@ -87,8 +91,8 @@ public class ClientAuthConfigImpl extends BaseAuthConfigImpl implements ClientAu
                 try {
                     clientModules = authContextHelper.getModules(new ClientAuthModule[0], authContextID);
                 } catch (AuthException ae) {
-                    logIfLevel(SEVERE, ae, "ClientAuthContext: ", authContextID, "of AppContext: ", getAppContext(),
-                            "unable to load client auth modules");
+                    LOG.log(Level.ERROR, "ClientAuthContext: " + authContextID + " of AppContext: " + getAppContext()
+                        + " - unable to load client auth modules", ae);
                     throw ae;
                 }
 
@@ -98,10 +102,7 @@ public class ClientAuthConfigImpl extends BaseAuthConfigImpl implements ClientAu
                 boolean noModules = true;
                 for (int i = 0; i < clientModules.length; i++) {
                     if (clientModules[i] != null) {
-                        if (isLoggable(FINE)) {
-                            logIfLevel(FINE, null, "ClientAuthContext: ", authContextID, "of AppContext: ", getAppContext(),
-                                    "initializing module");
-                        }
+                        LOG.log(DEBUG, "ClientAuthContext: {0} of AppContext: {1} - initializing module", authContextID, getAppContext());
 
                         noModules = false;
                         checkMessageTypes(clientModules[i].getSupportedMessageTypes());
@@ -112,8 +113,7 @@ public class ClientAuthConfigImpl extends BaseAuthConfigImpl implements ClientAu
                 }
 
                 if (noModules) {
-                    logIfLevel(WARNING, null, "CLientAuthContext: ", authContextID, "of AppContext: ", getAppContext(),
-                            "contains no Auth Modules");
+                    LOG.log(WARNING, "CLientAuthContext: {0} of AppContext: {1} - contains no Auth Modules", authContextID, getAppContext());
                 }
 
                 return clientModules;
@@ -128,10 +128,7 @@ public class ClientAuthConfigImpl extends BaseAuthConfigImpl implements ClientAu
                         continue;
                     }
 
-                    if (isLoggable(FINE)) {
-                        logIfLevel(FINE, null, "ClientAuthContext: ", authContextID, "of AppContext: ", getAppContext(),
-                                "calling vaidateResponse on module");
-                    }
+                    LOG.log(DEBUG, "ClientAuthContext: {0} of AppContext: {1} - calling vaidateResponse on module", authContextID, getAppContext());
 
                     status[i] = module[i].validateResponse(arg0, arg1, arg2);
 
@@ -151,10 +148,7 @@ public class ClientAuthConfigImpl extends BaseAuthConfigImpl implements ClientAu
                         continue;
                     }
 
-                    if (isLoggable(FINE)) {
-                        logIfLevel(FINE, null, "ClientAuthContext: ", authContextID, "of AppContext: ", getAppContext(),
-                                "calling secureResponse on module");
-                    }
+                    LOG.log(DEBUG, "ClientAuthContext: {0} of AppContext: {1} - calling secureResponse on module", authContextID, getAppContext());
 
                     status[i] = module[i].secureRequest(arg0, arg1);
 
@@ -167,17 +161,14 @@ public class ClientAuthConfigImpl extends BaseAuthConfigImpl implements ClientAu
 
             @Override
             public void cleanSubject(MessageInfo arg0, Subject arg1) throws AuthException {
-                for (int i = 0; i < module.length; i++) {
-                    if (module[i] == null) {
+                for (ClientAuthModule element : module) {
+                    if (element == null) {
                         continue;
                     }
 
-                    if (isLoggable(FINE)) {
-                        logIfLevel(FINE, null, "ClientAuthContext: ", authContextID, "of AppContext: ", getAppContext(),
-                                "calling cleanSubject on module");
-                    }
+                    LOG.log(DEBUG, "ClientAuthContext: {0} of AppContext: {1} - calling cleanSubject on module", authContextID, getAppContext());
 
-                    module[i].cleanSubject(arg0, arg1);
+                    element.cleanSubject(arg0, arg1);
                 }
             }
         };

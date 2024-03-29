@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -16,20 +17,19 @@
 
 package org.glassfish.epicyro.config.module.config;
 
-import static java.util.logging.Level.FINE;
-
+import java.lang.System.Logger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
 
 import org.glassfish.epicyro.config.delegate.MessagePolicyDelegate;
 import org.glassfish.epicyro.config.helper.EpochCarrier;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 import jakarta.security.auth.message.AuthException;
 import jakarta.security.auth.message.MessageInfo;
@@ -42,7 +42,8 @@ import jakarta.security.auth.message.config.AuthConfig;
  */
 public abstract class BaseAuthConfigImpl implements AuthConfig {
 
-    String loggerName;
+    private static final Logger LOG = System.getLogger(BaseAuthConfigImpl.class.getName());
+
     EpochCarrier providerEpoch;
     long epoch;
     MessagePolicyDelegate policyDelegate;
@@ -50,13 +51,12 @@ public abstract class BaseAuthConfigImpl implements AuthConfig {
     String appContext;
     CallbackHandler callbackHandler;
 
-    private ReentrantReadWriteLock instanceReadWriteLock = new ReentrantReadWriteLock();
-    private Lock instanceReadLock = instanceReadWriteLock.readLock();
-    private Lock instanceWriteLock = instanceReadWriteLock.writeLock();
+    private final ReentrantReadWriteLock instanceReadWriteLock = new ReentrantReadWriteLock();
+    private final Lock instanceReadLock = instanceReadWriteLock.readLock();
+    private final Lock instanceWriteLock = instanceReadWriteLock.writeLock();
 
-    public BaseAuthConfigImpl(String loggerName, EpochCarrier providerEpoch, MessagePolicyDelegate policyDelegate, String layer,
+    public BaseAuthConfigImpl(EpochCarrier providerEpoch, MessagePolicyDelegate policyDelegate, String layer,
             String appContext, CallbackHandler callbackHandler) throws AuthException {
-        this.loggerName = loggerName;
         this.providerEpoch = providerEpoch;
         this.policyDelegate = policyDelegate;
         this.layer = layer;
@@ -131,15 +131,12 @@ public abstract class BaseAuthConfigImpl implements AuthConfig {
         }
 
         if (context != null) {
-            if (isLoggable(FINE)) {
-                logIfLevel(FINE, null, "AuthContextID found in Map: ", authContextID);
-            }
+            LOG.log(DEBUG, "AuthContextID found in Map: {0}", authContextID);
         }
 
         return context;
     }
 
-    @SuppressWarnings("unchecked")
     protected final <M> M getContext(Map<String, Map<Integer, M>> contextMap, String authContextID, Subject subject, Map<String, ?> properties)
             throws AuthException {
 
@@ -166,7 +163,7 @@ public abstract class BaseAuthConfigImpl implements AuthConfig {
 
                 Map<Integer, M> internalMap = contextMap.get(authContextID);
                 if (internalMap == null) {
-                    internalMap = new HashMap<Integer, M>();
+                    internalMap = new HashMap<>();
                     contextMap.put(authContextID, internalMap);
                 }
 
@@ -175,30 +172,6 @@ public abstract class BaseAuthConfigImpl implements AuthConfig {
             return context;
         } finally {
             instanceWriteLock.unlock();
-        }
-    }
-
-    protected boolean isLoggable(Level level) {
-        return Logger.getLogger(loggerName).isLoggable(level);
-    }
-
-    protected void logIfLevel(Level level, Throwable t, String... msgParts) {
-        Logger logger = Logger.getLogger(loggerName);
-
-        if (logger.isLoggable(level)) {
-            StringBuilder messageBuffer = new StringBuilder("");
-
-            for (String m : msgParts) {
-                messageBuffer.append(m);
-            }
-
-            String msg = messageBuffer.toString();
-
-            if (!msg.isEmpty() && t != null) {
-                logger.log(level, msg, t);
-            } else if (!msg.isEmpty()) {
-                logger.log(level, msg);
-            }
         }
     }
 
