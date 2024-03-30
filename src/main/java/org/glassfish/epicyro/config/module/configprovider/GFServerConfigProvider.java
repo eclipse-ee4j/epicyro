@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -16,8 +17,12 @@
 
 package org.glassfish.epicyro.config.module.configprovider;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.config.AuthConfigFactory;
+import jakarta.security.auth.message.config.AuthConfigProvider;
+import jakarta.security.auth.message.config.ClientAuthConfig;
+import jakarta.security.auth.message.config.ServerAuthConfig;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -30,13 +35,6 @@ import org.glassfish.epicyro.config.helper.ObjectUtils;
 import org.glassfish.epicyro.config.module.config.GFClientAuthConfig;
 import org.glassfish.epicyro.config.module.config.GFServerAuthConfig;
 
-//jsr 196 interface types
-import jakarta.security.auth.message.AuthException;
-import jakarta.security.auth.message.config.AuthConfigFactory;
-import jakarta.security.auth.message.config.AuthConfigProvider;
-import jakarta.security.auth.message.config.ClientAuthConfig;
-import jakarta.security.auth.message.config.ServerAuthConfig;
-
 /**
  * This class implements the interface AuthConfigProvider.
  *
@@ -44,8 +42,6 @@ import jakarta.security.auth.message.config.ServerAuthConfig;
  * @author Ronald Monzillo
  */
 public class GFServerConfigProvider implements AuthConfigProvider {
-
-    public static final Logger logger = Logger.getLogger(GFServerConfigProvider.class.getName());
 
     protected Map<String, Object> properties;
     protected ModuleConfigurationManager moduleConfigurationManager;

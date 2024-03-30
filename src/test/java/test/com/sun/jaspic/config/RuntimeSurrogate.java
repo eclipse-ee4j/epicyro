@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -16,20 +17,6 @@
 
 package test.com.sun.jaspic.config;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.security.auth.Subject;
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.callback.UnsupportedCallbackException;
-
-import org.glassfish.epicyro.config.factory.file.AuthConfigFileFactory;
-import org.glassfish.epicyro.config.module.configprovider.JAASServletAuthConfigProvider;
-
 import jakarta.security.auth.message.AuthException;
 import jakarta.security.auth.message.config.AuthConfigFactory;
 import jakarta.security.auth.message.config.AuthConfigFactory.RegistrationContext;
@@ -38,15 +25,31 @@ import jakarta.security.auth.message.config.RegistrationListener;
 import jakarta.security.auth.message.config.ServerAuthConfig;
 import jakarta.security.auth.message.config.ServerAuthContext;
 
+import java.io.IOException;
+import java.lang.System.Logger;
+import java.util.HashMap;
+import java.util.Random;
+import java.util.StringTokenizer;
+
+import javax.security.auth.Subject;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.UnsupportedCallbackException;
+
+import org.glassfish.epicyro.config.factory.file.AuthConfigFileFactory;
+import org.glassfish.epicyro.config.module.configprovider.JAASServletAuthConfigProvider;
+
+import static java.lang.System.Logger.Level.ERROR;
+import static java.lang.System.Logger.Level.INFO;
+
 /**
  *
  * @author Ron Monzillo
  */
 public class RuntimeSurrogate {
 
-    static final Logger logger = Logger.getLogger(RuntimeSurrogate.class.getName());
-    private static final String CONFIG_FILE_NAME_KEY = "config.file.name";
-    static HashMap<String, String> providerProperties = new HashMap<String, String>();
+    private static final Logger LOG = System.getLogger(RuntimeSurrogate.class.getName());
+    static HashMap<String, String> providerProperties = new HashMap<>();
     AuthConfigFactory factory;
     AuthConfigProvider provider;
 
@@ -60,6 +63,7 @@ public class RuntimeSurrogate {
                 ServerAuthConfig c = p.getServerAuthConfig(r.getMessageLayer(), r.getAppContext(),
                         new CallbackHandler() {
 
+                            @Override
                             public void handle(Callback[] clbcks)
                                     throws IOException, UnsupportedCallbackException {
                                 throw new UnsupportedOperationException("Not supported yet.");
@@ -67,7 +71,7 @@ public class RuntimeSurrogate {
                         });
                 ServerAuthContext s = c.getAuthContext("0", new Subject(), new HashMap());
             } catch (AuthException ex) {
-                Logger.getLogger(RuntimeSurrogate.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(ERROR, "Initialization failed.", ex);
             }
         }
     }
@@ -106,6 +110,7 @@ public class RuntimeSurrogate {
         RegistrationListener listener =
                 new RegistrationListener() {
 
+                    @Override
                     public void notify(String layer, String context) {
                         System.out.println("listener notified - layer: " + layer + " context: " + context);
                         f.getConfigProvider(layer, context, this);
@@ -138,29 +143,29 @@ public class RuntimeSurrogate {
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new TestThread();
         }
-        for (int i = 0; i < threads.length; i++) {
-            threads[i].start();
+        for (TestThread thread : threads) {
+            thread.start();
         }
         for (TestThread t : threads) {
             try {
                 t.join();
             } catch (InterruptedException ex) {
-                logger.log(Level.SEVERE, "thread: " + t.getId() + " caught exception", ex);
+                LOG.log(ERROR, () -> "thread: " + t.getId() + " caught exception", ex);
             } finally {
-                logger.log(Level.INFO, "thread: {0} completed: {1}", new Object[]{t.getId(), t.runAsConsumer() ? "comsumer" : "producer"});
+                LOG.log(INFO, "thread: {0} completed: {1}", t.getId(), t.runAsConsumer() ? "comsumer" : "producer");
             }
         }
-        logger.info("ALL THREADS JOINED");
+        LOG.log(INFO, "ALL THREADS JOINED");
         AuthConfigFactory f = AuthConfigFactory.getFactory();
         String[] rids = f.getRegistrationIDs(null);
         for (String i : rids) {
             RegistrationContext rc = f.getRegistrationContext(i);
-            logger.log(Level.INFO, "removing registration - layer: {0} appContext: {1} description: {2} persistent: {3}",
+            LOG.log(INFO, "removing registration - layer: {0} appContext: {1} description: {2} persistent: {3}",
                     new Object[]{rc.getMessageLayer(), rc.getAppContext(),
                         rc.getDescription(), rc.isPersistent()});
             f.removeRegistration(i);
         }
-        logger.info("ALL REGISTRATIONS REMOVED");
+        LOG.log(INFO, "ALL REGISTRATIONS REMOVED");
     }
 
     static class TestThread extends Thread implements RegistrationListener {
@@ -198,7 +203,7 @@ public class RuntimeSurrogate {
             } else {
                 synchronized (TestThread.class) {
                     consumerCount--;
-                    logger.log(Level.INFO, "creating producer, remaining consumers: " + consumerCount);
+                    LOG.log(INFO, "creating producer, remaining consumers: {0}", consumerCount);
                 }
                 while (true) {
                     synchronized (TestThread.class) {
@@ -212,7 +217,7 @@ public class RuntimeSurrogate {
                                 try {
                                     f.refresh();
                                 } catch (Exception e) {
-                                    logger.log(Level.SEVERE, "producer thread: " + getId(), e);
+                                    LOG.log(ERROR, "producer thread: " + getId(), e);
                                 }
                             }
                             break;
@@ -222,7 +227,7 @@ public class RuntimeSurrogate {
                                     f = AuthConfigFactory.getFactory();
                                     AuthConfigFactory.setFactory(f);
                                 } catch (Exception e) {
-                                    logger.log(Level.SEVERE, "producer thread: " + getId(), e);
+                                    LOG.log(ERROR, "producer thread: " + getId(), e);
                                 }
                             }
                             break;
@@ -234,7 +239,7 @@ public class RuntimeSurrogate {
                                         contexts[random.nextInt(contexts.length)],
                                         "persistent registration");
                             } catch (Exception e) {
-                                logger.log(Level.SEVERE, "producer thread: " + getId(), e);
+                                LOG.log(ERROR, "producer thread: " + getId(), e);
                             }
                             break;
                         case 3:
@@ -245,7 +250,7 @@ public class RuntimeSurrogate {
                                         contexts[random.nextInt(contexts.length)],
                                         "transient registration");
                             } catch (Exception e) {
-                                logger.log(Level.SEVERE, "producer thread: " + getId(), e);
+                                LOG.log(ERROR, "producer thread: " + getId(), e);
                             }
                             break;
                         case 4:
@@ -266,7 +271,7 @@ public class RuntimeSurrogate {
                                     }
                                 }
                             } catch (Exception e) {
-                                logger.log(Level.SEVERE, "producer thread: " + getId(), e);
+                                LOG.log(ERROR, "producer thread: " + getId(), e);
                             }
                             break;
 
@@ -282,7 +287,7 @@ public class RuntimeSurrogate {
         public void doConsumer(AuthConfigFactory f, String layer, String context) {
 
             synchronized (TestThread.class) {
-                logger.log(Level.INFO, "creating consumer");
+                LOG.log(INFO, "creating consumer");
                 this.stop = false;
             }
             try {
@@ -297,15 +302,16 @@ public class RuntimeSurrogate {
                 }
                 f.detachListener(this, null, null);
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "consumer thread: " + getId(), e);
+                LOG.log(ERROR, () -> "consumer thread: " + getId(), e);
             } finally {
                 synchronized (TestThread.class) {
                     consumerCount--;
-                    logger.log(Level.INFO, "consumer thread: " + getId() + "stopping - remaining: " + consumerCount);
+                    LOG.log(INFO, "consumer thread: {0} stopping - remaining: {1}", getId(), consumerCount);
                 }
             }
         }
 
+        @Override
         public void notify(String layer, String context) {
             if (random.nextInt(100) == 1) {
                 synchronized (TestThread.class) {

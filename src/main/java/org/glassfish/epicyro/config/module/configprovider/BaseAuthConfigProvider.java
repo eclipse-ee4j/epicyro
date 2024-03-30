@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -24,7 +25,6 @@ import javax.security.auth.callback.CallbackHandler;
 
 import org.glassfish.epicyro.config.delegate.MessagePolicyDelegate;
 import org.glassfish.epicyro.config.helper.EpochCarrier;
-import org.glassfish.epicyro.config.helper.LogManager;
 import org.glassfish.epicyro.config.helper.ModulesManager;
 import org.glassfish.epicyro.config.module.config.ClientAuthConfigImpl;
 import org.glassfish.epicyro.config.module.config.ServerAuthConfigImpl;
@@ -51,20 +51,20 @@ public abstract class BaseAuthConfigProvider implements AuthConfigProvider {
     public static final String SERVER_AUTH_MODULE = "server.auth.module";
     public static final String CLIENT_AUTH_MODULE = "client.auth.module";
 
-    private ReentrantReadWriteLock instanceReadWriteLock = new ReentrantReadWriteLock();
-    private Lock writeLock = instanceReadWriteLock.writeLock();
-    private HashSet<String> selfRegistered = new HashSet<>();
-    private EpochCarrier epochCarrier = new EpochCarrier();
+    private final ReentrantReadWriteLock instanceReadWriteLock = new ReentrantReadWriteLock();
+    private final Lock writeLock = instanceReadWriteLock.writeLock();
+    private final HashSet<String> selfRegistered = new HashSet<>();
+    private final EpochCarrier epochCarrier = new EpochCarrier();
 
     @Override
     public ClientAuthConfig getClientAuthConfig(String layer, String appContext, CallbackHandler callbackHandler) throws AuthException {
-        return new ClientAuthConfigImpl(getLoggerName(), epochCarrier, getModulesManager(appContext, true), getMessagePolicyDelegate(appContext), layer,
+        return new ClientAuthConfigImpl(epochCarrier, getModulesManager(appContext, true), getMessagePolicyDelegate(appContext), layer,
                 appContext, getClientCallbackHandler(callbackHandler));
     }
 
     @Override
     public ServerAuthConfig getServerAuthConfig(String layer, String appContext, CallbackHandler callbackHandler) throws AuthException {
-        return new ServerAuthConfigImpl(getLoggerName(), epochCarrier, getModulesManager(appContext, true), getMessagePolicyDelegate(appContext), layer,
+        return new ServerAuthConfigImpl(epochCarrier, getModulesManager(appContext, true), getMessagePolicyDelegate(appContext), layer,
                 appContext, getServerCallbackHandler(callbackHandler));
     }
 
@@ -96,14 +96,6 @@ public abstract class BaseAuthConfigProvider implements AuthConfigProvider {
     public void refresh() {
         epochCarrier.increment();
         selfRegister();
-    }
-
-    public String getLoggerName() {
-        return getProperty(LOGGER_NAME_KEY, BaseAuthConfigProvider.class.getName());
-    }
-
-    public LogManager getLogManager() {
-        return new LogManager(getLoggerName());
     }
 
     protected final String getProperty(String key, String defaultValue) {
@@ -142,7 +134,7 @@ public abstract class BaseAuthConfigProvider implements AuthConfigProvider {
             try {
                 RegistrationContext[] contexts = getSelfRegistrationContexts();
                 if (!selfRegistered.isEmpty()) {
-                    HashSet<String> toBeUnregistered = new HashSet<String>();
+                    HashSet<String> toBeUnregistered = new HashSet<>();
                     // get the current self-registrations
                     String[] registrationIDs = getFactory().getRegistrationIDs(this);
 

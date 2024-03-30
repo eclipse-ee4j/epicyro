@@ -17,15 +17,13 @@
 
 package org.glassfish.epicyro.config.factory;
 
-import static java.util.logging.Level.WARNING;
-import static org.glassfish.epicyro.config.helper.LogManager.JASPIC_LOGGER;
-import static org.glassfish.epicyro.config.helper.LogManager.RES_BUNDLE;
-
 import jakarta.security.auth.message.config.AuthConfigFactory;
 import jakarta.security.auth.message.config.AuthConfigProvider;
 import jakarta.security.auth.message.config.RegistrationListener;
 import jakarta.security.auth.message.module.ServerAuthModule;
 import jakarta.servlet.ServletContext;
+
+import java.lang.System.Logger;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -39,11 +37,12 @@ import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 import org.glassfish.epicyro.config.factory.file.AuthConfigProviderEntry;
 import org.glassfish.epicyro.config.factory.file.RegStoreFileParser;
 import org.glassfish.epicyro.config.factory.singlemodule.DefaultAuthConfigProvider;
 import org.glassfish.epicyro.config.helper.OperationLock;
+
+import static java.lang.System.Logger.Level.WARNING;
 
 /**
  * This class implements methods in the abstract class AuthConfigFactory.
@@ -52,7 +51,7 @@ import org.glassfish.epicyro.config.helper.OperationLock;
  */
 public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
 
-    private static final Logger logger = Logger.getLogger(JASPIC_LOGGER, RES_BUNDLE);
+    private static final Logger LOG = System.getLogger(BaseAuthConfigFactory.class.getName());
 
     private static final String CONTEXT_REGISTRATION_ID = "org.glassfish.security.message.registrationId";
 
@@ -438,19 +437,17 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
     }
 
     private static AuthConfigProvider _constructProvider(String className, Map<String, String> properties, AuthConfigFactory factory) {
-        AuthConfigProvider provider = null;
-
         if (className != null) {
             try {
-                provider = (AuthConfigProvider) Class.forName(className, true, Thread.currentThread().getContextClassLoader())
+                return (AuthConfigProvider) Class.forName(className, true, Thread.currentThread().getContextClassLoader())
                         .getConstructor(Map.class, AuthConfigFactory.class)
                         .newInstance(new Object[] { properties, factory });
             } catch (Throwable t) {
-                logger.log(WARNING, "GFAuthConfigFactory unable to load Provider " + className, t);
+                LOG.log(WARNING, "AuthConfigFactory was unable to load Provider " + className, t);
             }
         }
 
-        return provider;
+        return null;
     }
 
     // XXX need to update persistent state and notify effected listeners
@@ -571,7 +568,7 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
                 }
             }
         } catch (Exception e) {
-            logger.log(WARNING, "AuthConfigFactory loader failure", e);
+            LOG.log(WARNING, "AuthConfigFactory loader failure", e);
         }
     }
 

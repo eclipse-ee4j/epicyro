@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -111,7 +112,7 @@ public final class AuthConfigProviderEntry {
         this.properties = other.properties;
 
         if (other.registrationContexts != null) {
-            this.registrationContexts = new ArrayList<RegistrationContext>(other.registrationContexts);
+            this.registrationContexts = new ArrayList<>(other.registrationContexts);
         }
     }
 

@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -16,11 +17,9 @@
 
 package org.glassfish.epicyro.config.jaas;
 
-import static java.util.Collections.emptyMap;
-import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUIRED;
-import static org.glassfish.epicyro.config.helper.LogManager.JASPIC_LOGGER;
-import static org.glassfish.epicyro.config.helper.LogManager.RES_BUNDLE;
+import com.sun.security.auth.login.ConfigFile;
 
+import java.lang.System.Logger;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -29,12 +28,12 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.security.auth.login.AppConfigurationEntry;
 
-import com.sun.security.auth.login.ConfigFile;
+import static java.lang.System.Logger.Level.WARNING;
+import static java.util.Collections.emptyMap;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUIRED;
 
 /**
  *
@@ -42,9 +41,9 @@ import com.sun.security.auth.login.ConfigFile;
  */
 public class ExtendedConfigFile extends ConfigFile {
 
-    private static final Logger logger = Logger.getLogger(JASPIC_LOGGER, RES_BUNDLE);
-    // may be more than one delegate for a given jaas config file
+    private static final Logger LOG = System.getLogger(ExtendedConfigFile.class.getName());
 
+    // may be more than one delegate for a given jaas config file
     private Class<?> moduleClass;
 
     public static ExtendedConfigFile fromFileName(String configFileName) {
@@ -138,8 +137,7 @@ public class ExtendedConfigFile extends ConfigFile {
                                         }
                                     }
                                 } catch (Throwable t) {
-                                    String msg = "skipping unloadable class: " + clazz + " of entry: " + id;
-                                    logger.log(Level.WARNING, msg);
+                                    LOG.log(WARNING, () -> "Skipping unloadable class: " + clazz + " of entry: " + id, t);
                                 }
                             }
                             if (!hasAuthModule) {

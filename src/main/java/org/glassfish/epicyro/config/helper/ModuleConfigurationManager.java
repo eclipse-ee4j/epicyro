@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -16,18 +17,20 @@
 
 package org.glassfish.epicyro.config.helper;
 
-import static java.util.logging.Level.FINE;
-import static org.glassfish.epicyro.config.helper.HttpServletConstants.CLIENT;
-import static org.glassfish.epicyro.config.helper.HttpServletConstants.SERVER;
-import static org.glassfish.epicyro.config.helper.ObjectUtils.newAuthModule;
+import jakarta.security.auth.message.AuthException;
+import jakarta.security.auth.message.MessagePolicy;
+import jakarta.security.auth.message.config.AuthConfigFactory;
+import jakarta.security.auth.message.config.AuthConfigProvider;
+import jakarta.security.auth.message.module.ClientAuthModule;
+import jakarta.security.auth.message.module.ServerAuthModule;
 
 import java.io.IOException;
+import java.lang.System.Logger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Logger;
 
 import javax.security.auth.callback.CallbackHandler;
 
@@ -37,16 +40,14 @@ import org.glassfish.epicyro.data.AuthModuleConfig;
 import org.glassfish.epicyro.data.AuthModuleInstanceHolder;
 import org.glassfish.epicyro.data.AuthModulesLayerConfig;
 
-import jakarta.security.auth.message.AuthException;
-import jakarta.security.auth.message.MessagePolicy;
-import jakarta.security.auth.message.config.AuthConfigFactory;
-import jakarta.security.auth.message.config.AuthConfigProvider;
-import jakarta.security.auth.message.module.ClientAuthModule;
-import jakarta.security.auth.message.module.ServerAuthModule;
+import static java.lang.System.Logger.Level.*;
+import static org.glassfish.epicyro.config.helper.HttpServletConstants.CLIENT;
+import static org.glassfish.epicyro.config.helper.HttpServletConstants.SERVER;
+import static org.glassfish.epicyro.config.helper.ObjectUtils.newAuthModule;
 
 public class ModuleConfigurationManager {
 
-    public static final Logger logger = Logger.getLogger(ModuleConfigurationManager.class.getName());
+    private static final Logger LOG = System.getLogger(ModuleConfigurationManager.class.getName());
 
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private final OperationLock operationLock = new OperationLock(readWriteLock);
@@ -60,7 +61,7 @@ public class ModuleConfigurationManager {
     // support a previously available layer anymore.
     //
     // (In practice, does this *ever* happen? We normally only have the HttpServlet layer)
-    private final Map<String, String> layerToDefaultProviderRegistrationMap = new HashMap<String, String>();
+    private final Map<String, String> layerToDefaultProviderRegistrationMap = new HashMap<>();
 
     public ModuleConfigurationManager(ConfigParser initParser, AuthConfigFactory initFactory, AuthConfigProvider initProvider) {
         init(initParser, initFactory, initProvider);
@@ -95,7 +96,7 @@ public class ModuleConfigurationManager {
      */
     public void loadConfigContext(Object config) {
         if (defaultProvider == null) {
-            logger.severe("unableToLoad.noGlobalProvider");
+            LOG.log(ERROR, "unableToLoad.noGlobalProvider");
             return;
         }
 
@@ -167,7 +168,7 @@ public class ModuleConfigurationManager {
 
         AuthModulesLayerConfig authModulesLayerConfig = authModuleLayers.get(layer);
         if (authModulesLayerConfig == null || authModulesLayerConfig.getAuthModules() == null) {
-            logger.log(FINE, () -> "module config has no auth modules configured for layer [" + layer + "]");
+            LOG.log(DEBUG, "Module config has no auth modules configured for layer [{0}]", layer);
             return null;
         }
 
@@ -181,9 +182,8 @@ public class ModuleConfigurationManager {
             //
             // In either case, look for a default ID in the module config
 
-            logger.log(FINE, () ->
-                "DD did not specify auth module Id, or DD-specified Id for layer [" + layer + "] not found in config -- " +
-                "attempting to look for default auth moduke Id");
+            LOG.log(DEBUG, "DD did not specify auth module Id, or DD-specified Id for layer [{0}] not found"
+                + " in config -- attempting to look for default auth moduke Id", layer);
 
             String defaultModuleID = getDefaultModuleId(authModuleType, authModulesLayerConfig);
 
@@ -192,7 +192,7 @@ public class ModuleConfigurationManager {
 
                 // Did not find a default module ID
 
-                logger.log(FINE, () -> "No default config Id for layer [" + layer + "]");
+                LOG.log(DEBUG,  "No default config Id for layer [{0}]", layer);
 
                 return null;
             }
@@ -202,9 +202,8 @@ public class ModuleConfigurationManager {
 
         // Check module-type
         if (authModuleConfig.getType().indexOf(authModuleType) < 0) {
-            if (logger.isLoggable(FINE)) {
-                logger.fine("Request type [" + authModuleType + "] does not match config type [" + authModuleConfig.getType() + "]");
-            }
+            LOG.log(DEBUG, "Request type [{0}] does not match config type [{1}]", authModuleType,
+                authModuleConfig.getType());
 
             return null;
         }
@@ -215,7 +214,7 @@ public class ModuleConfigurationManager {
 
         // Optimization: if policy was not set, return null
         if (requestPolicy == null && responsePolicy == null) {
-            logger.fine("no policy applies");
+            LOG.log(DEBUG, "no policy applies");
             return null;
         }
 
@@ -227,7 +226,7 @@ public class ModuleConfigurationManager {
                 responsePolicy,
                 authModuleConfig.getOptions());
 
-        logger.log(FINE, () ->
+        LOG.log(DEBUG, () ->
             "getEntry for: " + layer + " -- " + authModuleId +
             "\n    module class: " + newAuthModuleConfig.getModuleClassName() +
             "\n    options: " + newAuthModuleConfig.getOptions() +

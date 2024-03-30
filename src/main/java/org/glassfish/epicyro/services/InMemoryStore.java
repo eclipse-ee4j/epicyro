@@ -1,18 +1,14 @@
 package org.glassfish.epicyro.services;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptySet;
-import static javax.xml.xpath.XPathConstants.NODESET;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -25,6 +21,10 @@ import org.glassfish.epicyro.config.helper.CallerPrincipal;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptySet;
+import static javax.xml.xpath.XPathConstants.NODESET;
 
 
 /**
@@ -43,7 +43,7 @@ import org.xml.sax.SAXException;
  */
 public class InMemoryStore {
 
-    private static final Logger LOGGER = Logger.getLogger(InMemoryStore.class.getName());
+    private static final Logger LOG = System.getLogger(InMemoryStore.class.getName());
 
     public static class Credential {
 
@@ -121,7 +121,7 @@ public class InMemoryStore {
             }
 
         } catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
-            LOGGER.log(Level.WARNING, "Unable to get caller credentials", e);
+            LOG.log(Level.WARNING, "Unable to get caller credentials", e);
         }
 
     }
