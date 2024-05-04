@@ -10,8 +10,8 @@ Build Requirements
 ------------------
 To build this project, you will need:
 
-1. Maven 3.6.3 or newer (http://maven.apache.org/download.html)
-2. JDK 11 or newer (e.g. https://adoptium.net/en-GB or https://jdk.java.net)
+1. Maven 3.8.6 or newer (http://maven.apache.org/download.html)
+2. JDK 17 or newer (e.g. https://adoptium.net/en-GB or https://jdk.java.net)
 
 Building
 --------
