@@ -23,6 +23,9 @@ Epicyro can be built by executing the following from the project root:
 Downloads
 ---------
 
+Get it from the free link.
+
+
 Downloads are available from the following locations:
 
 * [Maven Staging](https://jakarta.oss.sonatype.org/content/repositories/staging/org/glassfish/epicyro/epicyro/)
