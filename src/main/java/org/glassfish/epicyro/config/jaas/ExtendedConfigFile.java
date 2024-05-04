@@ -17,23 +17,18 @@
 
 package org.glassfish.epicyro.config.jaas;
 
-import com.sun.security.auth.login.ConfigFile;
+import static java.lang.System.Logger.Level.WARNING;
+import static java.util.Collections.emptyMap;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUIRED;
 
+import com.sun.security.auth.login.ConfigFile;
 import java.lang.System.Logger;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
-
 import javax.security.auth.login.AppConfigurationEntry;
-
-import static java.lang.System.Logger.Level.WARNING;
-import static java.util.Collections.emptyMap;
-import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUIRED;
 
 /**
  *
@@ -94,64 +89,49 @@ public class ExtendedConfigFile extends ConfigFile {
      * @return String[] containing all the AppNames appearing in the config file.
      * @throws SecurityException if no reflective access
      */
-    public String[] getAppNames(final Class[] authModuleClass) {
-
+    public String[] getAppNames(final Class<?>[] authModuleClass) {
         final Set<String> nameSet;
+
         try {
-            nameSet = (Set<String>) AccessController.doPrivileged(new PrivilegedExceptionAction() {
+            Field field = ConfigFile.class.getDeclaredField("configuration");
+            field.setAccessible(true);
+            Map<String, String> map = (Map<String, String>) field.get(ExtendedConfigFile.this);
 
-                @Override
-                public Object run() throws Exception {
-                    HashMap map;
-                    Field field = ConfigFile.class.getDeclaredField("configuration");
-                    field.setAccessible(true);
-                    map = (HashMap) field.get(ExtendedConfigFile.this);
-                    return map.keySet();
-                }
-            });
+            nameSet = map.keySet();
 
-        } catch (PrivilegedActionException pae) {
+        } catch (ReflectiveOperationException pae) {
             throw new SecurityException(pae.getCause());
         }
 
-        // remove any modules that don't implement specified interface
+        // Remove any modules that don't implement specified interface
         if (authModuleClass != null) {
-            try {
-                AccessController.doPrivileged(new PrivilegedExceptionAction() {
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            String[] names = nameSet.toArray(new String[nameSet.size()]);
+            for (String id : names) {
+                boolean hasAuthModule = false;
+                AppConfigurationEntry[] entry = getAppConfigurationEntry(id);
 
-                    @Override
-                    public Object run() throws Exception {
-                        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                        String[] names = nameSet.toArray(new String[nameSet.size()]);
-                        for (String id : names) {
-                            boolean hasAuthModule = false;
-                            AppConfigurationEntry[] entry = getAppConfigurationEntry(id);
-                            for (int i = 0; i < entry.length && !hasAuthModule; i++) {
-                                String clazz = entry[i].getLoginModuleName();
-                                try {
-                                    Class c = Class.forName(clazz, true, loader);
-                                    for (Class required : authModuleClass) {
-                                        if (required.isAssignableFrom(c)) {
-                                            hasAuthModule = true;
-                                            break;
-                                        }
-                                    }
-                                } catch (Throwable t) {
-                                    LOG.log(WARNING, () -> "Skipping unloadable class: " + clazz + " of entry: " + id, t);
-                                }
-                            }
-                            if (!hasAuthModule) {
-                                nameSet.remove(id);
+                for (int i = 0; i < entry.length && !hasAuthModule; i++) {
+                    String clazz = entry[i].getLoginModuleName();
+                    try {
+                        Class<?> c = Class.forName(clazz, true, loader);
+                        for (Class<?> required : authModuleClass) {
+                            if (required.isAssignableFrom(c)) {
+                                hasAuthModule = true;
+                                break;
                             }
                         }
-                        return null;
+                    } catch (Throwable t) {
+                        LOG.log(WARNING, () -> "Skipping unloadable class: " + clazz + " of entry: " + id, t);
                     }
-                });
-            } catch (java.security.PrivilegedActionException pae) {
-                throw new SecurityException(pae.getCause());
-            }
+                }
 
+                if (!hasAuthModule) {
+                    nameSet.remove(id);
+                }
+            }
         }
+
         return nameSet.toArray(new String[nameSet.size()]);
     }
 }

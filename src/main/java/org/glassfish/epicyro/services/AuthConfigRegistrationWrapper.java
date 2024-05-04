@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -19,14 +20,15 @@ package org.glassfish.epicyro.services;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
+import jakarta.security.auth.message.config.AuthConfigFactory;
 import jakarta.security.auth.message.config.RegistrationListener;
 
 public class AuthConfigRegistrationWrapper {
 
+    private AuthConfigFactory authConfigFactory;
     private String layer;
     private String applicationContextId;
-    private String jaspicProviderRegistrationId;
+    private String authenticationProviderRegistrationId;
     private boolean enabled;
     private ConfigData data;
 
@@ -37,14 +39,15 @@ public class AuthConfigRegistrationWrapper {
     private int referenceCount = 1;
     private RegistrationWrapperRemover removerDelegate;
 
-    public AuthConfigRegistrationWrapper(String layer, String applicationContextId, RegistrationWrapperRemover removerDelegate) {
+    public AuthConfigRegistrationWrapper(AuthConfigFactory authConfigFactory, String layer, String applicationContextId, RegistrationWrapperRemover removerDelegate) {
+        this.authConfigFactory = authConfigFactory;
         this.layer = layer;
         this.applicationContextId = applicationContextId;
         this.removerDelegate = removerDelegate;
         this.rwLock = new ReentrantReadWriteLock(true);
         this.wLock = rwLock.writeLock();
 
-        enabled = BaseAuthenticationService.authConfigFactory != null;
+        enabled = authConfigFactory != null;
         listener = new AuthConfigRegistrationListener(layer, applicationContextId);
     }
 
@@ -66,10 +69,10 @@ public class AuthConfigRegistrationWrapper {
             data = null;
         }
 
-        if (BaseAuthenticationService.authConfigFactory != null) {
-            BaseAuthenticationService.authConfigFactory.detachListener(this.listener, layer, applicationContextId);
+        if (authConfigFactory != null) {
+            authConfigFactory.detachListener(this.listener, layer, applicationContextId);
             if (getJaspicProviderRegistrationId() != null) {
-                BaseAuthenticationService.authConfigFactory.removeRegistration(getJaspicProviderRegistrationId());
+                authConfigFactory.removeRegistration(getJaspicProviderRegistrationId());
             }
         }
     }
@@ -110,11 +113,11 @@ public class AuthConfigRegistrationWrapper {
     }
 
     public String getJaspicProviderRegistrationId() {
-        return this.jaspicProviderRegistrationId;
+        return this.authenticationProviderRegistrationId;
     }
 
     public void setRegistrationId(String jaspicProviderRegistrationId) {
-        this.jaspicProviderRegistrationId = jaspicProviderRegistrationId;
+        this.authenticationProviderRegistrationId = jaspicProviderRegistrationId;
     }
 
     public ConfigData getConfigData() {

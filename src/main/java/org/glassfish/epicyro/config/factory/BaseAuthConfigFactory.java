@@ -24,8 +24,6 @@ import jakarta.security.auth.message.module.ServerAuthModule;
 import jakarta.servlet.ServletContext;
 
 import java.lang.System.Logger;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -329,12 +327,7 @@ public abstract class BaseAuthConfigFactory extends AuthConfigFactory {
 
         String registrationId = (String) servletContext.getAttribute(CONTEXT_REGISTRATION_ID);
         if (!isEmpty(registrationId)) {
-            AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
-                @Override
-                public Boolean run() {
-                    return removeRegistration(registrationId);
-                }
-            });
+            removeRegistration(registrationId);
         }
     }
 

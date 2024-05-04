@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2022 OmniFish and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -56,8 +56,6 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 public class BaseAuthenticationService {
 
-    protected static final AuthConfigFactory authConfigFactory = AuthConfigFactory.getFactory();
-
     private static final String MESSAGE_INFO = BaseAuthenticationService.class.getName() + ".message.info";
 
     private ReadWriteLock readWriteLock;
@@ -69,6 +67,7 @@ public class BaseAuthenticationService {
     protected Map<String, Object> map;
     protected CallbackHandler callbackHandler;
     protected AuthConfigRegistrationWrapper listenerWrapper;
+    protected AuthConfigFactory authConfigFactory;
 
     protected void init(String messageLayer, String appContextId, Map<String, Object> properties, CallbackHandler callbackHandler, RegistrationWrapperRemover removerDelegate) {
         this.messageLayer = messageLayer;
@@ -83,7 +82,10 @@ public class BaseAuthenticationService {
         this.readLock = readWriteLock.readLock();
         this.writeLock = readWriteLock.writeLock();
 
-        listenerWrapper = new AuthConfigRegistrationWrapper(this.messageLayer, this.appContextId, removerDelegate);
+        authConfigFactory = AuthConfigFactory.getFactory();
+        listenerWrapper = new AuthConfigRegistrationWrapper(
+                this.authConfigFactory, this.messageLayer, this.appContextId, removerDelegate);
+
     }
 
     public void setRegistrationId(String registrationId) {
@@ -315,7 +317,6 @@ public class BaseAuthenticationService {
         return Boolean.valueOf((String) messageInfo.getMap().get(REGISTER_SESSION));
     }
 
-    @SuppressWarnings("unchecked")
     private void setMandatory(MessageInfo messageInfo) {
         messageInfo.getMap().put(IS_MANDATORY, TRUE.toString());
     }

@@ -17,35 +17,28 @@
 
 package org.glassfish.epicyro.config.helper;
 
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.INFO;
+import static java.lang.System.Logger.Level.TRACE;
+import static java.lang.System.Logger.Level.WARNING;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.OPTIONAL;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUIRED;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUISITE;
+import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.SUFFICIENT;
+
 import jakarta.security.auth.message.AuthException;
 import jakarta.security.auth.message.AuthStatus;
-
 import java.lang.System.Logger;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
-
 import org.glassfish.epicyro.config.jaas.ExtendedConfigFile;
-
-import static java.lang.System.Logger.Level.DEBUG;
-import static java.lang.System.Logger.Level.INFO;
-import static java.lang.System.Logger.Level.TRACE;
-import static java.lang.System.Logger.Level.WARNING;
-import static java.security.AccessController.doPrivileged;
-import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.OPTIONAL;
-import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUIRED;
-import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.REQUISITE;
-import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag.SUFFICIENT;
 
 /**
  *
@@ -146,16 +139,9 @@ public class JAASModulesManager extends ModulesManager {
             } else {
                 int j = moduleNumber;
                 try {
-                    moduleInstances.add(j, doPrivileged(new PrivilegedExceptionAction<M>() {
-
-                        @Override
-                        @SuppressWarnings("unchecked")
-                        public M run() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-                            return (M) loginModuleConstructors[j].newInstance(ARGS);
-                        }
-                    }));
-                } catch (PrivilegedActionException pae) {
-                    throw (AuthException) new AuthException().initCause(pae.getCause());
+                    moduleInstances.add(j, (M) loginModuleConstructors[j].newInstance(ARGS));
+                } catch (ReflectiveOperationException | IllegalArgumentException e) {
+                    throw (AuthException) new AuthException().initCause(e.getCause());
                 }
             }
         }
@@ -288,31 +274,27 @@ public class JAASModulesManager extends ModulesManager {
         if (loginModuleConstructors == null) {
             try {
                 Class<?> moduleType = template.getClass().getComponentType();
-                loginModuleConstructors = doPrivileged(new PrivilegedExceptionAction<Constructor<?>[]>() {
 
-                    @Override
-                    public Constructor<?>[] run() throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+                Constructor<?>[] loginModuleCtors = new Constructor[appConfigurationEntry.length];
+                ClassLoader loader = Thread.currentThread().getContextClassLoader();
 
-                        Constructor<?>[] loginModuleCtors = new Constructor[appConfigurationEntry.length];
-                        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
-                        for (int i = 0; i < appConfigurationEntry.length; i++) {
-                            String loginModuleName = appConfigurationEntry[i].getLoginModuleName();
-                            try {
-                                Class<?> loginModuleClass = Class.forName(loginModuleName, true, loader);
-                                if (moduleType.isAssignableFrom(loginModuleClass)) {
-                                    loginModuleCtors[i] = loginModuleClass.getConstructor(PARAMS);
-                                }
-
-                            } catch (Throwable t) {
-                                LOG.log(WARNING, "Skipping unloadable class: {0} of appCOntext: {1}", loginModuleName, appContext);
-                                LOG.log(TRACE, "Skipping unloadable class - cause.", t);
-                            }
+                for (int i = 0; i < appConfigurationEntry.length; i++) {
+                    String loginModuleName = appConfigurationEntry[i].getLoginModuleName();
+                    try {
+                        Class<?> loginModuleClass = Class.forName(loginModuleName, true, loader);
+                        if (moduleType.isAssignableFrom(loginModuleClass)) {
+                            loginModuleCtors[i] = loginModuleClass.getConstructor(PARAMS);
                         }
-                        return loginModuleCtors;
+
+                    } catch (Throwable t) {
+                        LOG.log(WARNING, "Skipping unloadable class: {0} of appCOntext: {1}", loginModuleName, appContext);
+                        LOG.log(TRACE, "Skipping unloadable class - cause.", t);
                     }
-                });
-            } catch (PrivilegedActionException pae) {
+                }
+
+                loginModuleConstructors = loginModuleCtors;
+
+            } catch (Exception pae) {
                 throw (AuthException) new AuthException().initCause(pae.getCause());
             }
         }

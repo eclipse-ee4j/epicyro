@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (c) 2022, 2023 OmniFish and/or its affiliates. All rights reserved.
+    Copyright (c) 2022, 2024 OmniFish and/or its affiliates. All rights reserved.
     Copyright (c) 2010, 2021 Oracle and/or its affiliates. All rights reserved.
 
     This program and the accompanying materials are made available under the
@@ -29,7 +29,7 @@
 
     <groupId>org.glassfish.epicyro</groupId>
     <artifactId>epicyro</artifactId>
-    <version>3.1.1-SNAPSHOT</version>
+    <version>3.1.0-SNAPSHOT</version>
 
     <name>Epicyro</name>
     <description>
@@ -95,19 +95,19 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <maven.compiler.release>11</maven.compiler.release>
+        <maven.compiler.release>17</maven.compiler.release>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.1.0-M1</version>
+            <version>6.1.0</version>
         </dependency>
         <dependency>
             <groupId>jakarta.authentication</groupId>
             <artifactId>jakarta.authentication-api</artifactId>
-            <version>3.1.0-M1</version>
+            <version>3.1.0</version>
         </dependency>
         
         <dependency>
@@ -139,7 +139,7 @@
                         <configuration>
                             <rules>
                                 <requireMavenVersion>
-                                    <version>3.6.3</version>
+                                    <version>3.8.6</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>
@@ -151,7 +151,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
             </plugin>
 
 
@@ -163,7 +163,7 @@
                 <configuration>
                     <instructions>
                         <_noimportjava>true</_noimportjava>
-                        <_runee>JavaSE-11</_runee>
+                        <_runee>JavaSE-17</_runee>
                         <Automatic-Module-Name>org.glassfish.epicyro</Automatic-Module-Name>
                         <Extension-Name>org.glassfish.epicyro</Extension-Name>
                         
@@ -247,7 +247,7 @@
                             </groups>
                             <bottom><![CDATA[
 Comments to: <a href="mailto:epicyro-dev@eclipse.org">epicyro-dev@eclipse.org</a>.<br>
-Copyright &#169; 2023 Eclipse Foundation. All rights reserved.<br>
+Copyright &#169; 2024 Eclipse Foundation. All rights reserved.<br>
 Use is subject to <a href="http://www.eclipse.org/legal/epl-2.0" target="_top">license terms</a>.]]>
                             </bottom>
                         </configuration>
@@ -259,7 +259,7 @@ Use is subject to <a href="http://www.eclipse.org/legal/epl-2.0" target="_top">l
             <plugin>
                 <groupId>org.eclipse.dash</groupId>
                 <artifactId>license-tool-plugin</artifactId>
-                <version>1.0.2</version>
+                <version>1.1.0</version>
                 <executions>
                     <execution>
                         <id>license-check</id>
@@ -274,7 +274,7 @@ Use is subject to <a href="http://www.eclipse.org/legal/epl-2.0" target="_top">l
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
-                <version>1.5.0</version>
+                <version>1.6.0</version>
                 <configuration>
                     <flattenMode>ossrh</flattenMode>
                 </configuration>

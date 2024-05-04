@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 2019, 2021 OmniFaces. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -23,7 +24,6 @@ import java.security.Principal;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-
 import javax.security.auth.Subject;
 
 public class Caller implements Principal, Serializable  {
@@ -34,7 +34,7 @@ public class Caller implements Principal, Serializable  {
     private Set<String> groups = new HashSet<>();
 
     public static Caller fromSubject(Subject subject) {
-        Set<Caller> callers = PriviledgedAccessController.privileged(() -> subject.getPrincipals(Caller.class));
+        Set<Caller> callers = subject.getPrincipals(Caller.class);
         if (callers == null || callers.isEmpty()) {
             return null;
         }
@@ -43,7 +43,7 @@ public class Caller implements Principal, Serializable  {
     }
 
     public static void toSubject(Subject subject, Caller caller) {
-        PriviledgedAccessController.privileged(() -> subject.getPrincipals().add(caller));
+        subject.getPrincipals().add(caller);
     }
 
     public Caller() {

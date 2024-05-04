@@ -17,6 +17,15 @@
 
 package test.com.sun.jaspic.config;
 
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.ERROR;
+import static java.lang.System.Logger.Level.INFO;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import jakarta.security.auth.message.AuthException;
 import jakarta.security.auth.message.MessageInfo;
 import jakarta.security.auth.message.config.AuthConfigFactory;
@@ -27,7 +36,6 @@ import jakarta.security.auth.message.config.ClientAuthContext;
 import jakarta.security.auth.message.config.RegistrationListener;
 import jakarta.security.auth.message.config.ServerAuthConfig;
 import jakarta.security.auth.message.config.ServerAuthContext;
-
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.security.Security;
@@ -42,27 +50,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
-
 import org.glassfish.epicyro.config.factory.BaseAuthConfigFactory;
 import org.glassfish.epicyro.config.factory.file.AuthConfigFileFactory;
 import org.glassfish.epicyro.config.factory.file.AuthConfigProviderEntry;
 import org.glassfish.epicyro.config.factory.file.RegStoreFileParser;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-
-import static java.lang.System.Logger.Level.DEBUG;
-import static java.lang.System.Logger.Level.ERROR;
-import static java.lang.System.Logger.Level.INFO;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  *
@@ -150,26 +146,16 @@ public class FactoryTest {
     static AuthConfigFactory loadFactory(final String className) {
         AuthConfigFactory factory = null;
         try {
-            factory = (AuthConfigFactory) java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction() {
-
-                @Override
-                public Object run()
-                        throws ClassNotFoundException,
-                        InstantiationException,
-                        IllegalAccessException {
-                    ClassLoader loader =
-                            Thread.currentThread().
-                            getContextClassLoader();
-
-                    Class clazz = Class.forName(className, true, loader);
-                    return clazz.newInstance();
-                }
-            });
-        } catch (java.security.PrivilegedActionException pae) {
-            throw new SecurityException(pae.getException());
+            factory = (AuthConfigFactory)
+                Class.forName(className, true, Thread.currentThread().getContextClassLoader())
+                     .getDeclaredConstructor()
+                     .newInstance();
+        } catch (ReflectiveOperationException pae) {
+            throw new SecurityException(pae);
         } finally {
             assertNotNull("loadFactory returned null", factory);
         }
+
         return factory;
     }
 

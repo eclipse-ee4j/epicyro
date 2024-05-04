@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024 OmniFish and/or its affiliates. All rights reserved.
  * Copyright (c) 1997, 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -21,20 +22,14 @@ import static jakarta.security.auth.message.MessagePolicy.ProtectionPolicy.AUTHE
 import static jakarta.security.auth.message.MessagePolicy.ProtectionPolicy.AUTHENTICATE_RECIPIENT;
 import static jakarta.security.auth.message.MessagePolicy.ProtectionPolicy.AUTHENTICATE_SENDER;
 
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.security.auth.callback.CallbackHandler;
 import jakarta.security.auth.message.MessagePolicy;
 import jakarta.security.auth.message.MessagePolicy.TargetPolicy;
+import java.util.ArrayList;
+import java.util.List;
+import javax.security.auth.callback.CallbackHandler;
 
 
 public class AuthMessagePolicy {
-
-    private static boolean isSecMgrOff = System.getSecurityManager() == null;
 
     private static final String SENDER = "sender";
     private static final String CONTENT = "content";
@@ -101,35 +96,19 @@ public class AuthMessagePolicy {
     }
 
     public static CallbackHandler getDefaultCallbackHandler() {
-        // Get the default handler class
-        try {
-            return (CallbackHandler) doPrivileged(new PrivilegedExceptionAction<Object>() {
-                @Override
-                public Object run() throws Exception {
-                    ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                    if (handlerClassName == null) {
-                        handlerClassName = System.getProperty(HANDLER_CLASS_PROPERTY, DEFAULT_HANDLER_CLASS);
-                    }
-
-                    return Class.forName(handlerClassName, true, loader)
-                                .newInstance();
-                }
-            });
-
-        } catch (PrivilegedActionException pae) {
-            throw new RuntimeException(pae.getException());
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        if (handlerClassName == null) {
+            handlerClassName = System.getProperty(HANDLER_CLASS_PROPERTY, DEFAULT_HANDLER_CLASS);
         }
-    }
 
-    public static Object doPrivileged(PrivilegedExceptionAction<Object> action) throws PrivilegedActionException {
-        if (isSecMgrOff) {
-            try {
-                return action.run();
-            } catch(Exception e) {
-                throw new PrivilegedActionException(e);
-            }
-        } else {
-            return AccessController.doPrivileged(action);
+        try {
+            return (CallbackHandler)
+                Class.forName(handlerClassName, true, loader)
+                     .getDeclaredConstructor()
+                     .newInstance();
+
+        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+            throw new RuntimeException(e);
         }
     }
 

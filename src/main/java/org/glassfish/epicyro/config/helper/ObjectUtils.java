@@ -18,16 +18,8 @@
 package org.glassfish.epicyro.config.helper;
 
 import jakarta.security.auth.message.AuthException;
-
 import java.io.IOException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
-
 import org.glassfish.epicyro.config.factory.ConfigParser;
-
-import static java.security.AccessController.doPrivileged;
 
 public class ObjectUtils {
 
@@ -45,17 +37,11 @@ public class ObjectUtils {
     public static <T> T createObject(String className) {
         ClassLoader loader = getClassLoader();
 
-        if (System.getSecurityManager() != null) {
-            try {
-                return (T) doPrivileged((PrivilegedExceptionAction<Object>)
-                    () -> Class.forName(className, true, loader).newInstance());
-            } catch (PrivilegedActionException pae) {
-                throw new RuntimeException(pae.getException());
-            }
-        }
-
         try {
-            return (T) Class.forName(className, true, loader).newInstance();
+            return (T)
+                Class.forName(className, true, loader)
+                     .getDeclaredConstructor()
+                     .newInstance();
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
@@ -100,15 +86,6 @@ public class ObjectUtils {
     }
 
     public static ClassLoader getClassLoader() {
-        if (System.getSecurityManager() == null) {
-            return Thread.currentThread().getContextClassLoader();
-        }
-
-        return (ClassLoader) AccessController.doPrivileged(new PrivilegedAction<>() {
-            @Override
-            public Object run() {
-                return Thread.currentThread().getContextClassLoader();
-            }
-        });
+        return Thread.currentThread().getContextClassLoader();
     }
 }
