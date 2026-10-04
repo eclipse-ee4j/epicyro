@@ -1,0 +1,10 @@
+name: "Epicyro - Jakarta Authentication - REST"
+metadata:
+  unlisted: true
+  keywords:
+    - "security"
+    - "jakarta-authentication"
+    - "rest"
+  categories:
+    - "security"
+  status: "experimental"

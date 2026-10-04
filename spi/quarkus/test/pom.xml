@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.glassfish.epicyro</groupId>
+    <artifactId>epicyro-quarkus-test</artifactId>
+    <version>3.1.1-SNAPSHOT</version>
+
+    <name>Epicyro Quarkus test app</name>
+    <description>
+        Test application for Jakarta Authentication in Quarkus with Epicyro. Because the app uses Quarkus REST, the
+        extension adds quarkus-rest-servlet, so REST runs through Undertow and a ServerAuthModule sees a real
+        HttpServletRequest.
+    </description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>21</maven.compiler.release>
+        
+        <quarkus.platform.version>3.40.1</quarkus.platform.version>
+        <epicyro.version>3.1.1-SNAPSHOT</epicyro.version>
+        <arquillian.version>1.10.0.Final</arquillian.version>
+        <arquillian-quarkus.version>1.0.0-SNAPSHOT</arquillian-quarkus.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.quarkus.platform</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.arquillian</groupId>
+                <artifactId>arquillian-bom</artifactId>
+                <version>${arquillian.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.epicyro</groupId>
+            <artifactId>quarkus-epicyro</artifactId>
+            <version>${epicyro.version}</version>
+        </dependency>
+
+        <!--
+            Arquillian container that builds each @Deployment archive into a production Quarkus app and runs it in
+            its own JVM. The app gets its extensions from arquillian.quarkus.dependencies (see surefire below), not
+            from this project's dependencies.
+        -->
+        <dependency>
+            <groupId>ee.omnifish.arquillian</groupId>
+            <artifactId>arquillian-quarkus-managed</artifactId>
+            <version>${arquillian-quarkus.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.junit5</groupId>
+            <artifactId>arquillian-junit5-container</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!--
+                            Extensions the test apps are built with. quarkus-rest makes quarkus-epicyro add
+                            quarkus-rest-servlet, so REST runs through Undertow. Resolved from the local Maven
+                            repository, so run "mvn install" (not just verify) after changing the extension.
+                        -->
+                        <arquillian.quarkus.dependencies>
+                            org.glassfish.epicyro:quarkus-epicyro:${epicyro.version}
+                            io.quarkus:quarkus-rest
+                        </arquillian.quarkus.dependencies>
+
+                        <!--
+                            Deploy at / instead of /<archive name>: Quarkus REST through quarkus-rest-servlet doesn't
+                            match resources under a servlet context path (it matches against the Vert.x path, which
+                            includes the context path, and then fails with an NPE instead of a 404).
+                        -->
+                        <arquillian.quarkus.contextRootFromArchiveName>false</arquillian.quarkus.contextRootFromArchiveName>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

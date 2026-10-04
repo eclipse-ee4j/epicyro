@@ -36,3 +36,5 @@ nb-configuration.xml
 .DS_Store
 
 /.flattened-pom.xml
+.flattened-pom.xml
+
