@@ -1,0 +1,10 @@
+name: "Epicyro - Jakarta Authentication"
+metadata:
+  keywords:
+    - "security"
+    - "jakarta-authentication"
+    - "jaspic"
+    - "servlet"
+  categories:
+    - "security"
+  status: "experimental"
