@@ -20,6 +20,10 @@
 
     <build>
         <plugins>
+            <!-- Javadoc placeholder, see the parent -->
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-extension-maven-plugin</artifactId>
