@@ -2,9 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.glassfish.epicyro</groupId>
+    <parent>
+        <groupId>org.glassfish.epicyro</groupId>
+        <artifactId>quarkus-spi</artifactId>
+        <version>3.1.2-SNAPSHOT</version>
+    </parent>
+
     <artifactId>quarkus-epicyro-parent</artifactId>
-    <version>3.1.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Epicyro Quarkus extension - Parent</name>
@@ -22,7 +26,6 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <quarkus.version>3.40.1</quarkus.version>
-        <epicyro.version>3.1.2-SNAPSHOT</epicyro.version>
         <compiler-plugin.version>3.15.0</compiler-plugin.version>
         <surefire-plugin.version>3.5.2</surefire-plugin.version>
     </properties>
@@ -39,7 +42,7 @@
             <dependency>
                 <groupId>org.glassfish.epicyro</groupId>
                 <artifactId>epicyro</artifactId>
-                <version>${epicyro.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.epicyro</groupId>

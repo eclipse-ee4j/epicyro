@@ -2,9 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.glassfish.epicyro</groupId>
+    <parent>
+        <groupId>org.glassfish.epicyro</groupId>
+        <artifactId>quarkus-spi</artifactId>
+        <version>3.1.2-SNAPSHOT</version>
+    </parent>
+
     <artifactId>epicyro-quarkus-test</artifactId>
-    <version>3.1.2-SNAPSHOT</version>
 
     <name>Epicyro Quarkus test app</name>
     <description>
@@ -18,7 +22,6 @@
         <maven.compiler.release>21</maven.compiler.release>
         
         <quarkus.platform.version>3.40.1</quarkus.platform.version>
-        <epicyro.version>3.1.2-SNAPSHOT</epicyro.version>
         <arquillian.version>1.10.0.Final</arquillian.version>
         <arquillian-quarkus.version>1.0.0</arquillian-quarkus.version>
     </properties>
@@ -54,7 +57,7 @@
         <dependency>
             <groupId>org.glassfish.epicyro</groupId>
             <artifactId>quarkus-epicyro</artifactId>
-            <version>${epicyro.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <!--
@@ -111,7 +114,7 @@
                             repository, so run "mvn install" (not just verify) after changing the extension.
                         -->
                         <arquillian.quarkus.dependencies>
-                            org.glassfish.epicyro:quarkus-epicyro:${epicyro.version}
+                            org.glassfish.epicyro:quarkus-epicyro:${project.version}
                             io.quarkus:quarkus-rest
                         </arquillian.quarkus.dependencies>
 

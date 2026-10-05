@@ -21,4 +21,36 @@
         <module>runtime</module>
         <module>deployment</module>
     </modules>
+
+    <!--
+        The modules of this hidden extension have no API, so javadoc has nothing to document. Maven Central requires a
+        javadoc jar for every jar, so they get one with just a README instead (the modules declare the
+        maven-jar-plugin to use the javadoc-placeholder execution).
+    -->
+    <properties>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>javadoc-placeholder</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                            <configuration>
+                                <classifier>javadoc</classifier>
+                                <classesDirectory>${project.basedir}/../src/javadoc</classesDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>

@@ -21,4 +21,13 @@
             <artifactId>quarkus-rest-servlet-deployment</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Javadoc placeholder, see the parent -->
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

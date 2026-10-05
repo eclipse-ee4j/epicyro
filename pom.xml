@@ -98,6 +98,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Not published by the central-publishing-maven-plugin (comma separated artifactIds) -->
+        <excludeArtifacts>epicyro-quarkus-test</excludeArtifacts>
     </properties>
 
     <modules>
